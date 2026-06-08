@@ -4,6 +4,7 @@ import { useNavigate } from '../components/Router';
 import { supabase } from '../lib/supabaseClient';
 import { Eye, EyeOff, Lock, Mail, Box } from 'lucide-react';
 import { motion } from 'framer-motion';
+import logoBranca from '@/logos/logo_branca.png';
 
 export const Login: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -98,19 +99,15 @@ export const Login: React.FC = () => {
         className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-black/45"
       >
         {/* Header */}
-        <div className="flex flex-col items-center justify-center text-center space-y-3 mb-8">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-2xl shadow-lg shadow-indigo-500/30">
-            IEQ
-          </div>
-          
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-              IEQ Paraíso
-            </h1>
-            <p className="text-sm text-slate-400 font-medium">
-              Gestão de Membros e Administração
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center text-center space-y-4 mb-8">
+          <img 
+            src={logoBranca} 
+            alt="Logo IEQ Paraíso" 
+            className="h-20 w-auto object-contain"
+          />
+          <p className="text-sm text-slate-400 font-medium">
+            Gestão de Membros e Administração
+          </p>
         </div>
 
         {/* Error Notification */}
