@@ -103,7 +103,7 @@ export const Login: React.FC = () => {
           <img 
             src={logoBranca} 
             alt="Logo IEQ Paraíso" 
-            className="h-20 w-auto object-contain"
+            className="h-[130px] w-auto object-contain"
           />
           <p className="text-sm text-slate-400 font-medium">
             Gestão de Membros e Administração
