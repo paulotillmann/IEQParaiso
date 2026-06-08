@@ -99,13 +99,13 @@ export const Login: React.FC = () => {
         className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-black/45"
       >
         {/* Header */}
-        <div className="flex flex-col items-center justify-center text-center space-y-4 mb-8">
+        <div className="flex flex-col items-center justify-center text-center mb-8">
           <img 
             src={logoBranca} 
             alt="Logo IEQ Paraíso" 
             className="h-[180px] w-auto object-contain"
           />
-          <p className="text-sm text-slate-400 font-medium">
+          <p className="text-sm text-slate-400 font-medium -mt-6">
             Gestão de Membros e Administração
           </p>
         </div>
