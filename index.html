@@ -52,6 +52,96 @@
                 DEFAULT: "hsl(var(--card))",
                 foreground: "hsl(var(--card-foreground))",
               },
+              // Paleta Oficial IEQ (CMYK convertido)
+              brand: {
+                purple: '#8b2b9e', // Roxo (CMYK 60, 100, 0, 0)
+                blue: '#00b2ff',   // Azul (CMYK 100, 30, 0, 0)
+                yellow: '#ffcc00', // Amarelo (CMYK 0, 20, 100, 0)
+                red: '#ff0000',    // Vermelho (CMYK 0, 100, 100, 0)
+                gray: '#666666',   // Cinza (CMYK 0, 0, 0, 60)
+              },
+              // Redireciona a família indigo para o Roxo IEQ
+              indigo: {
+                50: '#fdf7fe',
+                100: '#faebff',
+                200: '#f3d4ff',
+                300: '#e7aeff',
+                400: '#d77bff',
+                500: '#a54eff',
+                600: '#8b2b9e', // Roxo Principal
+                700: '#752086',
+                800: '#601a6f',
+                900: '#50175c',
+                950: '#32073c',
+              },
+              // Redireciona a família blue para o Azul IEQ
+              blue: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#00b2ff', // Azul Principal
+                600: '#0099e6',
+                700: '#0077b3',
+                800: '#006699',
+                900: '#005580',
+                950: '#00334d',
+              },
+              // Redireciona a família red para o Vermelho IEQ
+              red: {
+                50: '#fff5f5',
+                100: '#ffe3e3',
+                200: '#ffc9c9',
+                300: '#ffa8a8',
+                400: '#ff8787',
+                500: '#ff0000', // Vermelho Principal
+                600: '#e60000',
+                700: '#cc0000',
+                800: '#b30000',
+                900: '#800000',
+                950: '#4d0000',
+              },
+              // Redireciona a família yellow para o Amarelo IEQ
+              yellow: {
+                50: '#fffdf0',
+                100: '#fffbeb',
+                200: '#fef7c3',
+                300: '#fde885',
+                400: '#fcd34d',
+                500: '#ffcc00', // Amarelo Principal
+                600: '#e6b800',
+                700: '#cc9e00',
+                800: '#b38a00',
+                950: '#4d3b00',
+              },
+              // Mapeia gray e slate para o Cinza IEQ
+              gray: {
+                50: '#f9f9f9',
+                100: '#f3f3f3',
+                200: '#e3e3e3',
+                300: '#cccccc',
+                400: '#a3a3a3',
+                500: '#666666', // Cinza Principal
+                600: '#5c5c5c',
+                700: '#4d4d4d',
+                800: '#3d3d3d',
+                900: '#1a1a1a',
+                950: '#0d0d0d',
+              },
+              slate: {
+                50: '#f9f9f9',
+                100: '#f3f3f3',
+                200: '#e3e3e3',
+                300: '#cccccc',
+                400: '#a3a3a3',
+                500: '#666666',
+                600: '#5c5c5c',
+                700: '#4d4d4d',
+                800: '#3d3d3d',
+                900: '#1a1a1a',
+                950: '#0d0d0d',
+              }
             },
             borderRadius: {
               lg: "var(--radius)",
@@ -73,19 +163,19 @@
         --card-foreground: 222.2 84% 4.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 222.2 84% 4.9%;
-        --primary: 222.2 47.4% 11.2%;
-        --primary-foreground: 210 40% 98%;
+        --primary: 292 60% 39%;
+        --primary-foreground: 0 0% 100%;
         --secondary: 210 40% 96.1%;
         --secondary-foreground: 222.2 47.4% 11.2%;
         --muted: 210 40% 96.1%;
         --muted-foreground: 215.4 16.3% 46.9%;
         --accent: 210 40% 96.1%;
         --accent-foreground: 222.2 47.4% 11.2%;
-        --destructive: 0 84.2% 60.2%;
+        --destructive: 0 100% 50%;
         --destructive-foreground: 210 40% 98%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
-        --ring: 222.2 84% 4.9%;
+        --ring: 292 60% 39%;
         --radius: 0.5rem;
       }
       .dark {
@@ -95,7 +185,7 @@
         --card-foreground: 210 40% 98%;
         --popover: 222.2 20% 10%;
         --popover-foreground: 210 40% 98%;
-        --primary: 210 40% 98%;
+        --primary: 292 70% 65%;
         --primary-foreground: 222.2 47.4% 11.2%;
         --secondary: 222.2 15% 13.5%;
         --secondary-foreground: 210 40% 98%;
@@ -103,11 +193,43 @@
         --muted-foreground: 215 20.2% 65.1%;
         --accent: 222.2 15% 13.5%;
         --accent-foreground: 210 40% 98%;
-        --destructive: 0 62.8% 30.6%;
+        --destructive: 0 100% 50%;
         --destructive-foreground: 210 40% 98%;
         --border: 222.2 15% 12.5%;
         --input: 222.2 15% 12.5%;
-        --ring: 212.7 26.8% 83.9%;
+        --ring: 292 70% 65%;
+      }
+      
+      /* Custom Premium Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(139, 43, 158, 0.2);
+        border-radius: 9999px;
+        transition: background 0.2s ease;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 43, 158, 0.6);
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: rgba(165, 78, 255, 0.25);
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(165, 78, 255, 0.6);
+      }
+      
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 43, 158, 0.2) transparent;
+      }
+      .dark * {
+        scrollbar-color: rgba(165, 78, 255, 0.25) transparent;
       }
     </style>
   <script type="importmap">

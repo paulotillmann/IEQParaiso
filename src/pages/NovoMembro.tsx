@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, usePath } from '../components/Router';
+import { useToast } from '../contexts/ToastContext';
 import { 
   ArrowLeft, 
   Save, 
@@ -25,6 +26,7 @@ export const NovoMembro: React.FC = () => {
   const { userDetails, isAdmin, isSecretaria } = useAuth();
   const navigate = useNavigate();
   const path = usePath();
+  const { success } = useToast();
 
   // Mode check (Add or Edit)
   const [editId, setEditId] = useState<string | null>(null);
@@ -257,7 +259,7 @@ export const NovoMembro: React.FC = () => {
       if (usingMocks) {
         // Mock saving logic
         setTimeout(() => {
-          alert('Membro salvo com sucesso (mock local).');
+          success('Membro salvo com sucesso (mock local).');
           navigate('/membros');
         }, 500);
         return;
@@ -278,7 +280,7 @@ export const NovoMembro: React.FC = () => {
         if (error) throw error;
       }
 
-      alert('Membro salvo com sucesso!');
+      success(editId ? 'Membro atualizado com sucesso!' : 'Membro cadastrado com sucesso!');
       navigate('/membros');
     } catch (err: any) {
       setFormError(err.message || 'Erro ao salvar informações do membro.');

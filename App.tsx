@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { RouterProvider, usePath } from './src/components/Router';
+import { ToastProvider } from './src/contexts/ToastContext';
 import ProtectedLayout from './src/components/ProtectedLayout';
 
 // Pages
@@ -11,6 +12,7 @@ import NovoMembro from './src/pages/NovoMembro';
 import FichaMembro from './src/pages/FichaMembro';
 import Cargos from './src/pages/Cargos';
 import Usuarios from './src/pages/Usuarios';
+import LogsAtividade from './src/pages/LogsAtividade';
 import Visitantes from './src/pages/Visitantes';
 import NovoVisitante from './src/pages/NovoVisitante';
 import Cultos from './src/pages/Cultos';
@@ -35,8 +37,9 @@ const RoutesResolver: React.FC = () => {
     );
   }
 
-  // Handle Login screen separately
-  if (currentPath === '/login') {
+  // Handle Login screen separately or recovery flow
+  const isRecoveryMode = window.location.hash.includes('type=recovery');
+  if (currentPath === '/login' || isRecoveryMode) {
     return <Login />;
   }
 
@@ -80,6 +83,23 @@ const RoutesResolver: React.FC = () => {
       return (
         <ProtectedLayout>
           <Usuarios />
+        </ProtectedLayout>
+      );
+    }
+
+    // 3.5. Logs de Atividade (Only for Admin)
+    if (currentPath === '/logs') {
+      if (userDetails.perfil !== 'administrador') {
+        window.history.replaceState({}, '', '/dashboard');
+        return (
+          <ProtectedLayout>
+            <Dashboard />
+          </ProtectedLayout>
+        );
+      }
+      return (
+        <ProtectedLayout>
+          <LogsAtividade />
         </ProtectedLayout>
       );
     }
@@ -209,11 +229,13 @@ const RoutesResolver: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <RouterProvider>
-      <AuthProvider>
-        <RoutesResolver />
-      </AuthProvider>
-    </RouterProvider>
+    <ToastProvider>
+      <RouterProvider>
+        <AuthProvider>
+          <RoutesResolver />
+        </AuthProvider>
+      </RouterProvider>
+    </ToastProvider>
   );
 };
 

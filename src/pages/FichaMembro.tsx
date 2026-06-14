@@ -15,6 +15,7 @@ import {
   FileText,
   Bookmark
 } from 'lucide-react';
+import logoPreta from '@/logos/logo_preta.png';
 
 interface MembroDetails {
   id: string;
@@ -160,7 +161,11 @@ export const FichaMembro: React.FC = () => {
           header, aside, button, nav, footer, .no-print {
             display: none !important;
           }
-          main, body, html {
+          /* Reset root layout constraints to allow natural multi-page pagination */
+          html, body, #root, 
+          #root > div, 
+          div.min-w-0, 
+          main {
             background: white !important;
             color: black !important;
             margin: 0 !important;
@@ -168,6 +173,9 @@ export const FichaMembro: React.FC = () => {
             width: 100% !important;
             height: auto !important;
             overflow: visible !important;
+            min-height: 0 !important;
+            display: block !important;
+            position: relative !important;
           }
           .print-container {
             border: none !important;
@@ -252,13 +260,13 @@ export const FichaMembro: React.FC = () => {
         
         {/* Print Only Header (Hidden on screen) */}
         <div className="hidden print-header">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded bg-slate-900 text-white font-bold flex items-center justify-center text-xl">
-              IEQ
+          <div className="flex items-center justify-between border-b-2 border-slate-900 pb-4 w-full">
+            <div className="flex items-center gap-4">
+              <img src={logoPreta} alt="Logo IEQ Paraíso" className="h-14 w-auto object-contain" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold uppercase leading-none">Igreja do Evangelho Quadrangular</h1>
-              <p className="text-xs font-semibold text-gray-500 mt-1">Membro Oficial • Araguari - MG</p>
+            <div className="text-right text-xs text-gray-500 font-semibold">
+              <p className="font-bold text-slate-800">FICHA DE MEMBRO</p>
+              <p>Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
             </div>
           </div>
         </div>

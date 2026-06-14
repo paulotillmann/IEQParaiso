@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
 import { 
   Check, 
   Search, 
@@ -38,6 +39,7 @@ interface Membro {
 
 export const Presencas: React.FC = () => {
   const { user, userDetails, isPastor } = useAuth();
+  const { error: toastError } = useToast();
 
   const [cultos, setCultos] = useState<Culto[]>([]);
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -272,7 +274,7 @@ export const Presencas: React.FC = () => {
       }
     } catch (err) {
       console.error('Erro ao salvar presença:', err);
-      alert('Houve um erro ao registrar a presença no banco de dados.');
+      toastError('Houve um erro ao registrar a presença no banco de dados.');
     } finally {
       setSavingIds(prev => {
         const next = new Set(prev);

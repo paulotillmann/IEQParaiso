@@ -72,14 +72,17 @@ RETURNS TRIGGER AS $$
 DECLARE
     is_first_user BOOLEAN;
     default_perfil public.perfil_usuario;
+    is_active BOOLEAN;
 BEGIN
-    -- Se for o primeiro usuário do banco, será Administrador, senão Secretária
+    -- Se for o primeiro usuário do banco, será Administrador e ativo, senão Secretária e inativo
     SELECT NOT EXISTS (SELECT 1 FROM public.usuarios) INTO is_first_user;
     
     IF is_first_user THEN
         default_perfil := 'administrador';
+        is_active := true;
     ELSE
         default_perfil := 'secretaria';
+        is_active := false;
     END IF;
 
     INSERT INTO public.usuarios (id, nome, email, perfil, ativo)
@@ -88,7 +91,7 @@ BEGIN
         coalesce(new.raw_user_meta_data->>'nome', 'Novo Usuário'),
         new.email,
         coalesce((new.raw_user_meta_data->>'perfil')::public.perfil_usuario, default_perfil),
-        coalesce((new.raw_user_meta_data->>'ativo')::boolean, true)
+        is_active
     );
     RETURN new;
 END;

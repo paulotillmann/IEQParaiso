@@ -23,7 +23,7 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const navigate = (to: string) => {
     window.history.pushState({}, '', to);
-    setPath(to);
+    setPath(to.split('?')[0]);
     // Dispatch scroll event or scroll to top
     window.scrollTo(0, 0);
   };

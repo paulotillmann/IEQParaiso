@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, usePath } from '../components/Router';
+import { useToast } from '../contexts/ToastContext';
 import { 
   ArrowLeft, 
   Save, 
@@ -31,6 +32,7 @@ interface VisitanteDetails {
 export const NovoVisitante: React.FC = () => {
   const { userDetails, isAdmin, isSecretaria } = useAuth();
   const navigate = useNavigate();
+  const { success } = useToast();
 
   // Mode check (Add or Edit)
   const [editId, setEditId] = useState<string | null>(null);
@@ -153,7 +155,7 @@ export const NovoVisitante: React.FC = () => {
 
     if (usingMocks) {
       setTimeout(() => {
-        alert('Visitante salvo com sucesso (mock local).');
+        success('Visitante salvo com sucesso (mock local).');
         navigate('/visitantes');
       }, 500);
       return;
@@ -175,7 +177,7 @@ export const NovoVisitante: React.FC = () => {
         if (error) throw error;
       }
 
-      alert('Visitante cadastrado com sucesso!');
+      success(editId ? 'Visitante atualizado com sucesso!' : 'Visitante cadastrado com sucesso!');
       navigate('/visitantes');
     } catch (err: any) {
       setFormError(err.message || 'Erro ao registrar visitante.');

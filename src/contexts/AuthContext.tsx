@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from './ToastContext';
 
 export type UserProfile = 'administrador' | 'secretaria' | 'pastor';
 
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000; // 60 minutes in milliseconds
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { warning } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
@@ -67,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       inactivityTimer.current = setTimeout(() => {
         console.log('Sessão expirada por inatividade.');
         handleSignOut();
-        alert('Sua sessão expirou devido a 60 minutos de inatividade.');
+        warning('Sua sessão expirou devido a 60 minutos de inatividade.');
       }, INACTIVITY_TIMEOUT);
     }
   };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
 import { 
   Plus, 
   Edit2, 
@@ -26,6 +27,7 @@ interface Usuario {
 
 export const Usuarios: React.FC = () => {
   const { userDetails, isAdmin } = useAuth();
+  const { success, error: toastError, warning } = useToast();
   
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export const Usuarios: React.FC = () => {
     setEmail('');
     setPerfil('secretaria');
     setPassword('');
-    setAtivo(true);
+    setAtivo(false);
     setFormError(null);
     setShowModal(true);
   };
@@ -198,7 +200,7 @@ export const Usuarios: React.FC = () => {
             data: {
               nome: nome.trim(),
               perfil,
-              ativo: true
+              ativo: false
             }
           }
         });
@@ -206,7 +208,7 @@ export const Usuarios: React.FC = () => {
         if (signUpErr) throw signUpErr;
 
         // Se deu tudo certo, mostramos uma notificação
-        alert('Usuário pré-cadastrado! Um e-mail de confirmação foi enviado.');
+        success('Usuário pré-cadastrado! Um e-mail de confirmação foi enviado.');
       }
 
       await fetchUsuarios();
@@ -221,7 +223,7 @@ export const Usuarios: React.FC = () => {
   const handleToggleStatus = async (userObj: Usuario) => {
     // Evitar que o próprio admin logado se inative
     if (userDetails && userDetails.id === userObj.id) {
-      alert('Você não pode desativar sua própria conta de administrador.');
+      warning('Você não pode desativar sua própria conta de administrador.');
       return;
     }
 
@@ -241,7 +243,7 @@ export const Usuarios: React.FC = () => {
       if (error) throw error;
       await fetchUsuarios();
     } catch (err: any) {
-      alert(err.message || 'Erro ao alterar status do usuário.');
+      toastError(err.message || 'Erro ao alterar status do usuário.');
     }
   };
 

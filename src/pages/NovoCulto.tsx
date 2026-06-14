@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, usePath } from '../components/Router';
+import { useToast } from '../contexts/ToastContext';
 import { 
   ArrowLeft, 
   Save, 
@@ -17,6 +18,7 @@ import { motion } from 'framer-motion';
 export const NovoCulto: React.FC = () => {
   const { userDetails, isAdmin, isSecretaria } = useAuth();
   const navigate = useNavigate();
+  const { success } = useToast();
 
   // Mode check (Add or Edit)
   const [editId, setEditId] = useState<string | null>(null);
@@ -131,7 +133,7 @@ export const NovoCulto: React.FC = () => {
 
     if (usingMocks) {
       setTimeout(() => {
-        alert('Culto salvo com sucesso (mock local).');
+        success('Culto salvo com sucesso (mock local).');
         navigate('/cultos');
       }, 500);
       return;
@@ -153,7 +155,7 @@ export const NovoCulto: React.FC = () => {
         if (error) throw error;
       }
 
-      alert('Culto agendado com sucesso!');
+      success(editId ? 'Culto atualizado com sucesso!' : 'Culto agendado com sucesso!');
       navigate('/cultos');
     } catch (err: any) {
       setFormError(err.message || 'Erro ao registrar culto no banco.');

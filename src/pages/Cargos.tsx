@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { useToast } from '../contexts/ToastContext';
 import { 
   Plus, 
   Edit2, 
@@ -23,6 +24,7 @@ interface Cargo {
 
 export const Cargos: React.FC = () => {
   const { userDetails, isAdmin } = useAuth();
+  const { error: toastError } = useToast();
   
   const [cargos, setCargos] = useState<Cargo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,7 @@ export const Cargos: React.FC = () => {
       if (error) throw error;
       await fetchCargos();
     } catch (err: any) {
-      alert(err.message || 'Erro ao alterar status do cargo.');
+      toastError(err.message || 'Erro ao alterar status do cargo.');
     }
   };
 
