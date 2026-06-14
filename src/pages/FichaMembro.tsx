@@ -34,6 +34,7 @@ interface MembroDetails {
   ativo: boolean;
   cargo_id: string;
   criado_em: string;
+  codigo_ieq: number | null;
   cargo: {
     nome: string;
   } | null;
@@ -80,12 +81,12 @@ export const FichaMembro: React.FC = () => {
       console.warn('Fallback para carregamento mock da ficha do membro:', err);
       // Fallback mocks
       const mockList = [
-        { id: '1', nome_completo: 'Carlos Eduardo Oliveira', telefone: '(34) 99122-3344', whatsapp: '(34) 99122-3344', endereco: 'Rua das Flores, 123', cidade: 'Araguari', uf: 'MG', data_nascimento: '1988-05-15', estado_civil: 'casado', data_batismo: '2005-10-12', data_ingresso: '2010-01-10', foto_url: null, observacoes: 'Líder de jovens há 3 anos. Sempre ativo e prestativo.', ativo: true, cargo_id: '6', criado_em: new Date().toISOString(), cargo: { nome: 'Membro' } },
-        { id: '2', nome_completo: 'Maria Eduarda Souza Silva', telefone: '(34) 99244-5566', whatsapp: '(34) 99244-5566', endereco: 'Av. Minas Gerais, 450', cidade: 'Araguari', uf: 'MG', data_nascimento: '1995-12-08', estado_civil: 'solteiro', data_batismo: '2012-06-17', data_ingresso: '2015-08-20', foto_url: null, observacoes: 'Ministério de louvor e adoração.', ativo: true, cargo_id: '3', criado_em: new Date().toISOString(), cargo: { nome: 'Líder' } },
-        { id: '3', nome_completo: 'João Pedro Rezende', telefone: '(34) 98877-1122', whatsapp: '(34) 98877-1122', endereco: 'Rua Coronel Quirino, 89', cidade: 'Araguari', uf: 'MG', data_nascimento: '1975-03-24', estado_civil: 'casado', data_batismo: '1998-04-12', data_ingresso: '2002-05-14', foto_url: null, observacoes: 'Líder do ministério de casais. Membro do Conselho.', ativo: true, cargo_id: '4', criado_em: new Date().toISOString(), cargo: { nome: 'Diácono' } },
-        { id: '4', nome_completo: 'Ana Beatriz Ferreira Santos', telefone: '(34) 99111-9988', whatsapp: '(34) 99111-9988', endereco: 'Rua Marcílio Dias, 1010', cidade: 'Uberlândia', uf: 'MG', data_nascimento: '2000-09-12', estado_civil: 'solteiro', data_batismo: null, data_ingresso: '2021-03-01', foto_url: null, observacoes: 'Estudante universitária.', ativo: true, cargo_id: '6', criado_em: new Date().toISOString(), cargo: { nome: 'Membro' } },
-        { id: '5', nome_completo: 'Pr. Marcos Antônio da Silva', telefone: '(34) 99900-1122', whatsapp: '(34) 99900-1122', endereco: 'Av. Bahia, 12', cidade: 'Araguari', uf: 'MG', data_nascimento: '1965-07-20', estado_civil: 'casado', data_batismo: '1980-01-01', data_ingresso: '1995-10-10', foto_url: null, observacoes: 'Pastor Titular e Presidente Regional.', ativo: true, cargo_id: '1', criado_em: new Date().toISOString(), cargo: { nome: 'Pastor' } },
-        { id: '6', nome_completo: 'Lucas Gabriel Albuquerque', telefone: '(34) 98765-4321', whatsapp: '', endereco: 'Rua São Paulo, 54', cidade: 'Araguari', uf: 'MG', data_nascimento: '1990-01-01', estado_civil: 'divorciado', data_batismo: '2010-05-05', data_ingresso: '2012-12-12', foto_url: null, observacoes: 'Mudou-se para outra cidade no final de 2025.', ativo: false, cargo_id: '5', criado_em: new Date().toISOString(), cargo: { nome: 'Obreiro' } }
+        { id: '1', nome_completo: 'Carlos Eduardo Oliveira', telefone: '(34) 99122-3344', whatsapp: '(34) 99122-3344', endereco: 'Rua das Flores, 123', cidade: 'Araguari', uf: 'MG', data_nascimento: '1988-05-15', estado_civil: 'casado', data_batismo: '2005-10-12', data_ingresso: '2010-01-10', foto_url: null, observacoes: 'Líder de jovens há 3 anos. Sempre ativo e prestativo.', ativo: true, cargo_id: '6', criado_em: new Date().toISOString(), codigo_ieq: 1001, cargo: { nome: 'Membro' } },
+        { id: '2', nome_completo: 'Maria Eduarda Souza Silva', telefone: '(34) 99244-5566', whatsapp: '(34) 99244-5566', endereco: 'Av. Minas Gerais, 450', cidade: 'Araguari', uf: 'MG', data_nascimento: '1995-12-08', estado_civil: 'solteiro', data_batismo: '2012-06-17', data_ingresso: '2015-08-20', foto_url: null, observacoes: 'Ministério de louvor e adoração.', ativo: true, cargo_id: '3', criado_em: new Date().toISOString(), codigo_ieq: null, cargo: { nome: 'Líder' } },
+        { id: '3', nome_completo: 'João Pedro Rezende', telefone: '(34) 98877-1122', whatsapp: '(34) 98877-1122', endereco: 'Rua Coronel Quirino, 89', cidade: 'Araguari', uf: 'MG', data_nascimento: '1975-03-24', estado_civil: 'casado', data_batismo: '1998-04-12', data_ingresso: '2002-05-14', foto_url: null, observacoes: 'Líder do ministério de casais. Membro do Conselho.', ativo: true, cargo_id: '4', criado_em: new Date().toISOString(), codigo_ieq: 1003, cargo: { nome: 'Diácono' } },
+        { id: '4', nome_completo: 'Ana Beatriz Ferreira Santos', telefone: '(34) 99111-9988', whatsapp: '(34) 99111-9988', endereco: 'Rua Marcílio Dias, 1010', cidade: 'Uberlândia', uf: 'MG', data_nascimento: '2000-09-12', estado_civil: 'solteiro', data_batismo: null, data_ingresso: '2021-03-01', foto_url: null, observacoes: 'Estudante universitária.', ativo: true, cargo_id: '6', criado_em: new Date().toISOString(), codigo_ieq: 1004, cargo: { nome: 'Membro' } },
+        { id: '5', nome_completo: 'Pr. Marcos Antônio da Silva', telefone: '(34) 99900-1122', whatsapp: '(34) 99900-1122', endereco: 'Av. Bahia, 12', cidade: 'Araguari', uf: 'MG', data_nascimento: '1965-07-20', estado_civil: 'casado', data_batismo: '1980-01-01', data_ingresso: '1995-10-10', foto_url: null, observacoes: 'Pastor Titular e Presidente Regional.', ativo: true, cargo_id: '1', criado_em: new Date().toISOString(), codigo_ieq: 1005, cargo: { nome: 'Pastor' } },
+        { id: '6', nome_completo: 'Lucas Gabriel Albuquerque', telefone: '(34) 98765-4321', whatsapp: '', endereco: 'Rua São Paulo, 54', cidade: 'Araguari', uf: 'MG', data_nascimento: '1990-01-01', estado_civil: 'divorciado', data_batismo: '2010-05-05', data_ingresso: '2012-12-12', foto_url: null, observacoes: 'Mudou-se para outra cidade no final de 2025.', ativo: false, cargo_id: '5', criado_em: new Date().toISOString(), codigo_ieq: null, cargo: { nome: 'Obreiro' } }
       ];
 
       const found = mockList.find(m => m.id === memberId);
@@ -349,6 +350,10 @@ export const FichaMembro: React.FC = () => {
             </h3>
 
             <div className="print-grid space-y-3.5 text-sm font-medium">
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Código IEQ:</span>
+                <span className="text-foreground font-bold">{membro.codigo_ieq || <span className="italic text-xs text-muted-foreground/60">Não informado</span>}</span>
+              </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">Cargo Ministerial:</span>
                 <span className="text-foreground font-bold text-indigo-600 dark:text-indigo-400">{membro.cargo?.nome || 'Nenhum'}</span>

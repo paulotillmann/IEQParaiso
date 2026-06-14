@@ -36,6 +36,7 @@ interface Membro {
   foto_url: string | null;
   ativo: boolean;
   cargo_id: string;
+  codigo_ieq: number | null;
   cargo: {
     nome: string;
   } | null;
@@ -120,6 +121,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: true,
           cargo_id: '6',
+          codigo_ieq: 1001,
           cargo: { nome: 'Membro' }
         },
         {
@@ -137,6 +139,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: true,
           cargo_id: '3',
+          codigo_ieq: null,
           cargo: { nome: 'Líder' }
         },
         {
@@ -154,6 +157,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: true,
           cargo_id: '4',
+          codigo_ieq: 1003,
           cargo: { nome: 'Diácono' }
         },
         {
@@ -171,6 +175,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: true,
           cargo_id: '6',
+          codigo_ieq: 1004,
           cargo: { nome: 'Membro' }
         },
         {
@@ -188,6 +193,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: true,
           cargo_id: '1',
+          codigo_ieq: 1005,
           cargo: { nome: 'Pastor' }
         },
         {
@@ -205,6 +211,7 @@ export const Membros: React.FC = () => {
           foto_url: null,
           ativo: false,
           cargo_id: '5',
+          codigo_ieq: null,
           cargo: { nome: 'Obreiro' }
         }
       ];
@@ -222,8 +229,9 @@ export const Membros: React.FC = () => {
 
   // Filter members client-side based on options chosen
   const filteredMembros = membros.filter(m => {
-    // Name search
-    const matchesSearch = m.nome_completo.toLowerCase().includes(search.toLowerCase());
+    // Name or Code IEQ search
+    const matchesSearch = m.nome_completo.toLowerCase().includes(search.toLowerCase()) ||
+      (m.codigo_ieq && String(m.codigo_ieq).includes(search));
     
     // Cargo filter
     const matchesCargo = cargoFilter ? String(m.cargo_id) === cargoFilter || m.cargo?.nome === cargoFilter : true;
@@ -364,7 +372,12 @@ export const Membros: React.FC = () => {
                             membro.nome_completo.substring(0, 2).toUpperCase()
                           )}
                         </div>
-                        <span className="font-semibold text-foreground">{membro.nome_completo}</span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-foreground">{membro.nome_completo}</span>
+                          {membro.codigo_ieq && (
+                            <span className="text-[10px] text-muted-foreground font-semibold">Código IEQ: {membro.codigo_ieq}</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     

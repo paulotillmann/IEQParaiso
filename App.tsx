@@ -19,6 +19,7 @@ import Cultos from './src/pages/Cultos';
 import NovoCulto from './src/pages/NovoCulto';
 import Presencas from './src/pages/Presencas';
 import PresencasVisitantes from './src/pages/PresencasVisitantes';
+import DizimosOfertas from './src/pages/DizimosOfertas';
 
 // Route Guard component
 const RoutesResolver: React.FC = () => {
@@ -179,6 +180,15 @@ const RoutesResolver: React.FC = () => {
       return (
         <ProtectedLayout>
           <PresencasVisitantes />
+        </ProtectedLayout>
+      );
+    }
+
+    // 4.11. Dízimos e Ofertas
+    if (currentPath === '/dizimos-ofertas') {
+      return (
+        <ProtectedLayout>
+          <DizimosOfertas />
         </ProtectedLayout>
       );
     }

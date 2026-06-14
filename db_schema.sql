@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.membros (
     observacoes TEXT,
     ativo BOOLEAN NOT NULL DEFAULT true,
     cargo_id UUID NOT NULL REFERENCES public.cargos(id) ON DELETE RESTRICT,
+    codigo_ieq INTEGER,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

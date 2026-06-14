@@ -141,15 +141,15 @@ export const NovoVisitante: React.FC = () => {
     setLoading(true);
 
     const payload = {
-      nome_completo: nomeCompleto.trim(),
-      telefone: telefone.trim() || null,
-      whatsapp: whatsapp.trim() || null,
-      endereco: endereco.trim() || null,
-      bairro: bairro.trim() || null,
-      cidade: cidade.trim(),
+      nome_completo: nomeCompleto.trim().toUpperCase(),
+      telefone: telefone.trim() ? telefone.trim().toUpperCase() : null,
+      whatsapp: whatsapp.trim() ? whatsapp.trim().toUpperCase() : null,
+      endereco: endereco.trim() ? endereco.trim().toUpperCase() : null,
+      bairro: bairro.trim() ? bairro.trim().toUpperCase() : null,
+      cidade: cidade.trim().toUpperCase(),
       uf: uf.trim().toUpperCase(),
-      quem_convidou: quemConvidou.trim() || null,
-      observacoes: observacoes.trim() || null,
+      quem_convidou: quemConvidou.trim() ? quemConvidou.trim().toUpperCase() : null,
+      observacoes: observacoes.trim() ? observacoes.trim().toUpperCase() : null,
       ativo
     };
 

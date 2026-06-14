@@ -19,7 +19,8 @@ import {
   Settings,
   History,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Coins
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoBranca from '@/logos/logo_branca.png';
@@ -83,6 +84,7 @@ export const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { name: 'Cultos', path: '/cultos', icon: Calendar, roles: ['administrador', 'secretaria', 'pastor'] },
     { name: 'Presença Membros', path: '/presencas', icon: UserCheck, roles: ['administrador', 'secretaria', 'pastor'] },
     { name: 'Presença Visitantes', path: '/presencas-visitantes', icon: ClipboardCheck, roles: ['administrador', 'secretaria', 'pastor'] },
+    { name: 'Dízimos e Ofertas', path: '/dizimos-ofertas', icon: Coins, roles: ['administrador', 'secretaria', 'pastor'] },
     { name: 'Cargos', path: '/cargos', icon: FileText, roles: ['administrador', 'secretaria', 'pastor'] },
     { 
       name: 'Configurações', 

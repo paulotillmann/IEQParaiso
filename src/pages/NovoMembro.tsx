@@ -53,6 +53,7 @@ export const NovoMembro: React.FC = () => {
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [observacoes, setObservacoes] = useState('');
   const [ativo, setAtivo] = useState(true);
+  const [codigoIeq, setCodigoIeq] = useState('');
 
   // Status/Validation states
   const [formError, setFormError] = useState<string | null>(null);
@@ -113,12 +114,12 @@ export const NovoMembro: React.FC = () => {
       // Mocked data if table is not loaded
       // We seek in localStorage or use a template
       const mockList = [
-        { id: '1', nome_completo: 'Carlos Eduardo Oliveira', telefone: '(34) 99122-3344', whatsapp: '(34) 99122-3344', endereco: 'Rua das Flores, 123', cidade: 'Araguari', uf: 'MG', data_nascimento: '1988-05-15', estado_civil: 'casado', data_batismo: '2005-10-12', data_ingresso: '2010-01-10', foto_url: null, observacoes: 'Líder de jovens há 3 anos.', ativo: true, cargo_id: '6' },
-        { id: '2', nome_completo: 'Maria Eduarda Souza Silva', telefone: '(34) 99244-5566', whatsapp: '(34) 99244-5566', endereco: 'Av. Minas Gerais, 450', cidade: 'Araguari', uf: 'MG', data_nascimento: '1995-12-08', estado_civil: 'solteiro', data_batismo: '2012-06-17', data_ingresso: '2015-08-20', foto_url: null, observacoes: '', ativo: true, cargo_id: '3' },
-        { id: '3', nome_completo: 'João Pedro Rezende', telefone: '(34) 98877-1122', whatsapp: '(34) 98877-1122', endereco: 'Rua Coronel Quirino, 89', cidade: 'Araguari', uf: 'MG', data_nascimento: '1975-03-24', estado_civil: 'casado', data_batismo: '1998-04-12', data_ingresso: '2002-05-14', foto_url: null, observacoes: 'Líder do ministério de casais.', ativo: true, cargo_id: '4' },
-        { id: '4', nome_completo: 'Ana Beatriz Ferreira Santos', telefone: '(34) 99111-9988', whatsapp: '(34) 99111-9988', endereco: 'Rua Marcílio Dias, 1010', cidade: 'Uberlândia', uf: 'MG', data_nascimento: '2000-09-12', estado_civil: 'solteiro', data_batismo: null, data_ingresso: '2021-03-01', foto_url: null, observacoes: '', ativo: true, cargo_id: '6' },
-        { id: '5', nome_completo: 'Pr. Marcos Antônio da Silva', telefone: '(34) 99900-1122', whatsapp: '(34) 99900-1122', endereco: 'Av. Bahia, 12', cidade: 'Araguari', uf: 'MG', data_nascimento: '1965-07-20', estado_civil: 'casado', data_batismo: '1980-01-01', data_ingresso: '1995-10-10', foto_url: null, observacoes: 'Pastor Titular.', ativo: true, cargo_id: '1' },
-        { id: '6', nome_completo: 'Lucas Gabriel Albuquerque', telefone: '(34) 98765-4321', whatsapp: '', endereco: 'Rua São Paulo, 54', cidade: 'Araguari', uf: 'MG', data_nascimento: '1990-01-01', estado_civil: 'divorciado', data_batismo: '2010-05-05', data_ingresso: '2012-12-12', foto_url: null, observacoes: 'Inativo por mudança.', ativo: false, cargo_id: '5' }
+        { id: '1', nome_completo: 'Carlos Eduardo Oliveira', telefone: '(34) 99122-3344', whatsapp: '(34) 99122-3344', endereco: 'Rua das Flores, 123', cidade: 'Araguari', uf: 'MG', data_nascimento: '1988-05-15', estado_civil: 'casado', data_batismo: '2005-10-12', data_ingresso: '2010-01-10', foto_url: null, observacoes: 'Líder de jovens há 3 anos.', ativo: true, cargo_id: '6', codigo_ieq: 1001 },
+        { id: '2', nome_completo: 'Maria Eduarda Souza Silva', telefone: '(34) 99244-5566', whatsapp: '(34) 99244-5566', endereco: 'Av. Minas Gerais, 450', cidade: 'Araguari', uf: 'MG', data_nascimento: '1995-12-08', estado_civil: 'solteiro', data_batismo: '2012-06-17', data_ingresso: '2015-08-20', foto_url: null, observacoes: '', ativo: true, cargo_id: '3', codigo_ieq: null },
+        { id: '3', nome_completo: 'João Pedro Rezende', telefone: '(34) 98877-1122', whatsapp: '(34) 98877-1122', endereco: 'Rua Coronel Quirino, 89', cidade: 'Araguari', uf: 'MG', data_nascimento: '1975-03-24', estado_civil: 'casado', data_batismo: '1998-04-12', data_ingresso: '2002-05-14', foto_url: null, observacoes: 'Líder do ministério de casais.', ativo: true, cargo_id: '4', codigo_ieq: 1003 },
+        { id: '4', nome_completo: 'Ana Beatriz Ferreira Santos', telefone: '(34) 99111-9988', whatsapp: '(34) 99111-9988', endereco: 'Rua Marcílio Dias, 1010', cidade: 'Uberlândia', uf: 'MG', data_nascimento: '2000-09-12', estado_civil: 'solteiro', data_batismo: null, data_ingresso: '2021-03-01', foto_url: null, observacoes: '', ativo: true, cargo_id: '6', codigo_ieq: 1004 },
+        { id: '5', nome_completo: 'Pr. Marcos Antônio da Silva', telefone: '(34) 99900-1122', whatsapp: '(34) 99900-1122', endereco: 'Av. Bahia, 12', cidade: 'Araguari', uf: 'MG', data_nascimento: '1965-07-20', estado_civil: 'casado', data_batismo: '1980-01-01', data_ingresso: '1995-10-10', foto_url: null, observacoes: 'Pastor Titular.', ativo: true, cargo_id: '1', codigo_ieq: 1005 },
+        { id: '6', nome_completo: 'Lucas Gabriel Albuquerque', telefone: '(34) 98765-4321', whatsapp: '', endereco: 'Rua São Paulo, 54', cidade: 'Araguari', uf: 'MG', data_nascimento: '1990-01-01', estado_civil: 'divorciado', data_batismo: '2010-05-05', data_ingresso: '2012-12-12', foto_url: null, observacoes: 'Inativo por mudança.', ativo: false, cargo_id: '5', codigo_ieq: null }
       ];
       
       const found = mockList.find(m => m.id === id);
@@ -147,6 +148,7 @@ export const NovoMembro: React.FC = () => {
     setImagePreview(data.foto_url || null);
     setObservacoes(data.observacoes || '');
     setAtivo(data.ativo);
+    setCodigoIeq(data.codigo_ieq ? String(data.codigo_ieq) : '');
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,6 +211,10 @@ export const NovoMembro: React.FC = () => {
       setFormError('A data de ingresso é obrigatória.');
       return;
     }
+    if (codigoIeq && isNaN(parseInt(codigoIeq, 10))) {
+      setFormError('O Código IEQ deve ser um número inteiro válido.');
+      return;
+    }
 
     setLoading(true);
 
@@ -240,20 +246,21 @@ export const NovoMembro: React.FC = () => {
       }
 
       const payload = {
-        nome_completo: nomeCompleto.trim(),
-        telefone: telefone.trim() || null,
-        whatsapp: whatsapp.trim() || null,
-        endereco: endereco.trim() || null,
-        cidade: cidade.trim(),
+        nome_completo: nomeCompleto.trim().toUpperCase(),
+        telefone: telefone.trim() ? telefone.trim().toUpperCase() : null,
+        whatsapp: whatsapp.trim() ? whatsapp.trim().toUpperCase() : null,
+        endereco: endereco.trim() ? endereco.trim().toUpperCase() : null,
+        cidade: cidade.trim().toUpperCase(),
         uf: uf.trim().toUpperCase(),
         data_nascimento: dataNascimento || null,
         estado_civil: estadoCivil || null,
         data_batismo: dataBatismo || null,
         data_ingresso: dataIngresso,
         foto_url: finalFotoUrl,
-        observacoes: observacoes.trim() || null,
+        observacoes: observacoes.trim() ? observacoes.trim().toUpperCase() : null,
         ativo,
-        cargo_id: cargoId
+        cargo_id: cargoId,
+        codigo_ieq: codigoIeq ? parseInt(codigoIeq, 10) : null
       };
 
       if (usingMocks) {
@@ -544,6 +551,17 @@ export const NovoMembro: React.FC = () => {
                       <option value="ativo">Ativo</option>
                       <option value="inativo">Inativo</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Código IEQ</label>
+                    <input
+                      type="number"
+                      placeholder="Ex: 12345"
+                      value={codigoIeq}
+                      onChange={e => setCodigoIeq(e.target.value)}
+                      className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 px-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
+                    />
                   </div>
 
                   <div className="space-y-1 sm:col-span-2">

@@ -32,6 +32,7 @@ interface Membro {
   nome_completo: string;
   ativo: boolean;
   cargo_id: string;
+  codigo_ieq?: number | null;
   cargo: {
     nome: string;
   } | null;
@@ -141,11 +142,11 @@ export const Presencas: React.FC = () => {
     } catch (err) {
       console.warn('Usando mock de membros na tela de presenças:', err);
       const mockMembros: Membro[] = [
-        { id: 'm1', nome_completo: 'Carlos Eduardo Oliveira', ativo: true, cargo_id: '6', cargo: { nome: 'Membro' } },
-        { id: 'm2', nome_completo: 'Maria Eduarda Souza Silva', ativo: true, cargo_id: '3', cargo: { nome: 'Líder' } },
-        { id: 'm3', nome_completo: 'João Pedro Rezende', ativo: true, cargo_id: '4', cargo: { nome: 'Diácono' } },
-        { id: 'm4', nome_completo: 'Ana Beatriz Ferreira Santos', ativo: true, cargo_id: '6', cargo: { nome: 'Membro' } },
-        { id: 'm5', nome_completo: 'Pr. Marcos Antônio da Silva', ativo: true, cargo_id: '1', cargo: { nome: 'Pastor' } }
+        { id: 'm1', nome_completo: 'Carlos Eduardo Oliveira', ativo: true, cargo_id: '6', codigo_ieq: 1001, cargo: { nome: 'Membro' } },
+        { id: 'm2', nome_completo: 'Maria Eduarda Souza Silva', ativo: true, cargo_id: '3', codigo_ieq: null, cargo: { nome: 'Líder' } },
+        { id: 'm3', nome_completo: 'João Pedro Rezende', ativo: true, cargo_id: '4', codigo_ieq: 1003, cargo: { nome: 'Diácono' } },
+        { id: 'm4', nome_completo: 'Ana Beatriz Ferreira Santos', ativo: true, cargo_id: '6', codigo_ieq: 1004, cargo: { nome: 'Membro' } },
+        { id: 'm5', nome_completo: 'Pr. Marcos Antônio da Silva', ativo: true, cargo_id: '1', codigo_ieq: 1005, cargo: { nome: 'Pastor' } }
       ];
       setMembros(mockMembros);
     }
