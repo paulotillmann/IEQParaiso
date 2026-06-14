@@ -42,6 +42,8 @@ interface Lancamento {
   valor_dizimo: number;
   valor_oferta_adoracao: number;
   valor_oferta_gerais: number;
+  valor_oferta_missoes: number; // Novo campo
+  tipo_entrada: 'dinheiro' | 'pix'; // Novo campo
   registrado_por: string;
   criado_em: string;
   membro?: {
@@ -72,6 +74,8 @@ export const DizimosOfertas: React.FC = () => {
   const [valorDizimo, setValorDizimo] = useState('0,00');
   const [valorOfertaAdoracao, setValorOfertaAdoracao] = useState('0,00');
   const [valorOfertaGerais, setValorOfertaGerais] = useState('0,00');
+  const [valorOfertaMissoes, setValorOfertaMissoes] = useState('0,00');
+  const [tipoEntrada, setTipoEntrada] = useState<'dinheiro' | 'pix'>('dinheiro');
   const [searchFilter, setSearchFilter] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -86,6 +90,8 @@ export const DizimosOfertas: React.FC = () => {
       valor_dizimo: 150.00,
       valor_oferta_adoracao: 20.00,
       valor_oferta_gerais: 10.00,
+      valor_oferta_missoes: 15.00,
+      tipo_entrada: 'dinheiro',
       registrado_por: 'u1',
       criado_em: new Date().toISOString(),
       membro: { nome_completo: 'CARLOS EDUARDO OLIVEIRA', codigo_ieq: 1001 }
@@ -97,6 +103,8 @@ export const DizimosOfertas: React.FC = () => {
       valor_dizimo: 300.00,
       valor_oferta_adoracao: 50.00,
       valor_oferta_gerais: 0.00,
+      valor_oferta_missoes: 0.00,
+      tipo_entrada: 'pix',
       registrado_por: 'u1',
       criado_em: new Date().toISOString(),
       membro: { nome_completo: 'JOÃO PEDRO REZENDE', codigo_ieq: 1003 }
@@ -108,6 +116,8 @@ export const DizimosOfertas: React.FC = () => {
       valor_dizimo: 0.00,
       valor_oferta_adoracao: 30.00,
       valor_oferta_gerais: 15.00,
+      valor_oferta_missoes: 50.00,
+      tipo_entrada: 'pix',
       registrado_por: 'u1',
       criado_em: new Date().toISOString(),
       membro: { nome_completo: 'MARIA EDUARDA SOUZA SILVA', codigo_ieq: null }
@@ -228,6 +238,8 @@ export const DizimosOfertas: React.FC = () => {
           valor_dizimo,
           valor_oferta_adoracao,
           valor_oferta_gerais,
+          valor_oferta_missoes,
+          tipo_entrada,
           registrado_por,
           criado_em,
           membro:membros(nome_completo, codigo_ieq)
@@ -243,6 +255,8 @@ export const DizimosOfertas: React.FC = () => {
         valor_dizimo: Number(l.valor_dizimo),
         valor_oferta_adoracao: Number(l.valor_oferta_adoracao),
         valor_oferta_gerais: Number(l.valor_oferta_gerais),
+        valor_oferta_missoes: Number(l.valor_oferta_missoes || 0),
+        tipo_entrada: l.tipo_entrada || 'dinheiro',
         membro: Array.isArray(l.membro) ? l.membro[0] : l.membro
       }));
 
@@ -273,8 +287,9 @@ export const DizimosOfertas: React.FC = () => {
     const dizimo = Math.max(0, parseCurrencyToFloat(valorDizimo));
     const adoracao = Math.max(0, parseCurrencyToFloat(valorOfertaAdoracao));
     const gerais = Math.max(0, parseCurrencyToFloat(valorOfertaGerais));
-
-    if (dizimo === 0 && adoracao === 0 && gerais === 0) {
+    const missoes = Math.max(0, parseCurrencyToFloat(valorOfertaMissoes));
+ 
+    if (dizimo === 0 && adoracao === 0 && gerais === 0 && missoes === 0) {
       toastError('Informe o valor de pelo menos um dízimo ou oferta.');
       return;
     }
@@ -289,6 +304,8 @@ export const DizimosOfertas: React.FC = () => {
         valor_dizimo: dizimo,
         valor_oferta_adoracao: adoracao,
         valor_oferta_gerais: gerais,
+        valor_oferta_missoes: missoes,
+        tipo_entrada: tipoEntrada,
         registrado_por: loggedUserId
       };
 
@@ -322,6 +339,8 @@ export const DizimosOfertas: React.FC = () => {
                 valor_dizimo: dizimo,
                 valor_oferta_adoracao: adoracao,
                 valor_oferta_gerais: gerais,
+                valor_oferta_missoes: missoes,
+                tipo_entrada: tipoEntrada,
                 registrado_por: loggedUserId
               };
             }
@@ -339,6 +358,8 @@ export const DizimosOfertas: React.FC = () => {
               valor_dizimo: dizimo,
               valor_oferta_adoracao: adoracao,
               valor_oferta_gerais: gerais,
+              valor_oferta_missoes: missoes,
+              tipo_entrada: tipoEntrada,
               registrado_por: loggedUserId
             };
             setMockLancamentosMem(updated);
@@ -351,6 +372,8 @@ export const DizimosOfertas: React.FC = () => {
               valor_dizimo: dizimo,
               valor_oferta_adoracao: adoracao,
               valor_oferta_gerais: gerais,
+              valor_oferta_missoes: missoes,
+              tipo_entrada: tipoEntrada,
               registrado_por: loggedUserId,
               criado_em: new Date().toISOString(),
               membro: {
@@ -397,6 +420,8 @@ export const DizimosOfertas: React.FC = () => {
     setValorDizimo(formatFloatToInput(lancamento.valor_dizimo));
     setValorOfertaAdoracao(formatFloatToInput(lancamento.valor_oferta_adoracao));
     setValorOfertaGerais(formatFloatToInput(lancamento.valor_oferta_gerais));
+    setValorOfertaMissoes(formatFloatToInput(lancamento.valor_oferta_missoes));
+    setTipoEntrada(lancamento.tipo_entrada || 'dinheiro');
     setShowMembroDropdown(false);
   };
 
@@ -435,6 +460,8 @@ export const DizimosOfertas: React.FC = () => {
     setValorDizimo('0,00');
     setValorOfertaAdoracao('0,00');
     setValorOfertaGerais('0,00');
+    setValorOfertaMissoes('0,00');
+    setTipoEntrada('dinheiro');
     setShowMembroDropdown(false);
   };
 
@@ -496,7 +523,8 @@ export const DizimosOfertas: React.FC = () => {
   const totalDizimo = lancamentos.reduce((acc, curr) => acc + curr.valor_dizimo, 0);
   const totalAdoracao = lancamentos.reduce((acc, curr) => acc + curr.valor_oferta_adoracao, 0);
   const totalGerais = lancamentos.reduce((acc, curr) => acc + curr.valor_oferta_gerais, 0);
-  const totalGeral = totalDizimo + totalAdoracao + totalGerais;
+  const totalMissoes = lancamentos.reduce((acc, curr) => acc + curr.valor_oferta_missoes, 0);
+  const totalGeral = totalDizimo + totalAdoracao + totalGerais + totalMissoes;
 
   const selectedCulto = cultos.find(c => c.id === selectedCultoId);
 
@@ -591,48 +619,59 @@ export const DizimosOfertas: React.FC = () => {
             className="space-y-6"
           >
             {/* Totalizers */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
               {/* Total Dizimos */}
-              <div className="p-5 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Dízimos</span>
-                  <span className="text-xl md:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{formatBRL(totalDizimo)}</span>
+                  <span className="text-lg md:text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{formatBRL(totalDizimo)}</span>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <Coins size={20} />
+                <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <Coins size={18} />
                 </div>
               </div>
 
               {/* Total Oferta Adoracao */}
-              <div className="p-5 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Oferta Adoração</span>
-                  <span className="text-xl md:text-2xl font-extrabold text-emerald-500">{formatBRL(totalAdoracao)}</span>
+                  <span className="text-lg md:text-xl font-extrabold text-emerald-500">{formatBRL(totalAdoracao)}</span>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <DollarSign size={20} />
+                <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <DollarSign size={18} />
                 </div>
               </div>
 
               {/* Total Oferta Gerais */}
-              <div className="p-5 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Ofertas Gerais</span>
-                  <span className="text-xl md:text-2xl font-extrabold text-blue-500">{formatBRL(totalGerais)}</span>
+                  <span className="text-lg md:text-xl font-extrabold text-blue-500">{formatBRL(totalGerais)}</span>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                  <DollarSign size={20} />
+                <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <DollarSign size={18} />
+                </div>
+              </div>
+
+              {/* Total Oferta Missoes */}
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Oferta Missões</span>
+                  <span className="text-lg md:text-xl font-extrabold text-amber-500">{formatBRL(totalMissoes)}</span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Coins size={18} />
                 </div>
               </div>
 
               {/* Total Geral */}
-              <div className="p-5 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between col-span-2 xl:col-span-1">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Total Arrecadado</span>
-                  <span className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formatBRL(totalGeral)}</span>
+                  <span className="text-lg md:text-xl font-extrabold text-slate-800 dark:text-slate-100">{formatBRL(totalGeral)}</span>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center">
-                  <TrendingUp size={20} />
+                <div className="h-9 w-9 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0">
+                  <TrendingUp size={18} />
                 </div>
               </div>
             </div>
@@ -723,6 +762,20 @@ export const DizimosOfertas: React.FC = () => {
                         )}
                       </div>
 
+                      {/* Tipo de Entrada */}
+                      <div className="space-y-1">
+                        <label htmlFor="tipo-entrada-select" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tipo de Entrada <span className="text-red-500">*</span></label>
+                        <select
+                          id="tipo-entrada-select"
+                          value={tipoEntrada}
+                          onChange={e => setTipoEntrada(e.target.value as any)}
+                          className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 px-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500 cursor-pointer text-foreground"
+                        >
+                          <option value="dinheiro" className="text-foreground bg-card">Dinheiro</option>
+                          <option value="pix" className="text-foreground bg-card">Pix</option>
+                        </select>
+                      </div>
+
                       {/* Valor Dizimo */}
                       <div className="space-y-1">
                         <label htmlFor="dizimo-val" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Valor do Dízimo (R$)</label>
@@ -768,6 +821,22 @@ export const DizimosOfertas: React.FC = () => {
                             className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
                           />
                           <DollarSign size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
+                        </div>
+                      </div>
+
+                      {/* Valor Oferta Missões */}
+                      <div className="space-y-1">
+                        <label htmlFor="missoes-val" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Oferta Missões (R$)</label>
+                        <div className="relative">
+                          <input
+                            id="missoes-val"
+                            type="text"
+                            placeholder="0,00"
+                            value={valorOfertaMissoes}
+                            onChange={e => setValorOfertaMissoes(formatCurrencyInput(e.target.value))}
+                            className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
+                          />
+                          <Coins size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
                         </div>
                       </div>
 
@@ -823,20 +892,31 @@ export const DizimosOfertas: React.FC = () => {
                             <th className="px-4 py-4 text-right">Dízimo</th>
                             <th className="px-4 py-4 text-right">Adoração</th>
                             <th className="px-4 py-4 text-right">Gerais</th>
+                            <th className="px-4 py-4 text-right">Missões</th>
                             <th className="px-4 py-4 text-right">Total</th>
                             {canEdit && <th className="px-5 py-4 text-center">Ações</th>}
                           </tr>
                         </thead>
                         <tbody className="divide-y text-sm">
                           {filteredLancamentos.map((l) => {
-                            const totalLancado = l.valor_dizimo + l.valor_oferta_adoracao + l.valor_oferta_gerais;
+                            const totalLancado = l.valor_dizimo + l.valor_oferta_adoracao + l.valor_oferta_gerais + l.valor_oferta_missoes;
+                            const isPix = l.tipo_entrada === 'pix';
                             return (
                               <tr key={l.id} className="hover:bg-muted/10 transition-colors">
                                 <td className="px-5 py-4 font-semibold text-foreground">
                                   <div className="flex flex-col">
-                                    <span className="truncate max-w-[150px] md:max-w-[200px]">{l.membro?.nome_completo || 'Sem Nome'}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="truncate max-w-[150px] md:max-w-[200px]">{l.membro?.nome_completo || 'Sem Nome'}</span>
+                                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                        isPix 
+                                          ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' 
+                                          : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20'
+                                      }`}>
+                                        {l.tipo_entrada}
+                                      </span>
+                                    </div>
                                     {l.membro?.codigo_ieq && (
-                                      <span className="text-[10px] text-indigo-500 font-bold">Cód: {l.membro.codigo_ieq}</span>
+                                      <span className="text-[10px] text-indigo-500 font-bold mt-0.5">Cód: {l.membro.codigo_ieq}</span>
                                     )}
                                   </div>
                                 </td>
@@ -848,6 +928,9 @@ export const DizimosOfertas: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-4 text-right text-blue-600 dark:text-blue-400 font-semibold">
                                   {formatBRL(l.valor_oferta_gerais)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-amber-600 dark:text-amber-400 font-semibold">
+                                  {formatBRL(l.valor_oferta_missoes)}
                                 </td>
                                 <td className="px-4 py-4 text-right text-foreground font-extrabold">
                                   {formatBRL(totalLancado)}
