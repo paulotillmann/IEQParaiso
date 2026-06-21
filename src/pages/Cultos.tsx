@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Filter,
   CheckCircle,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,8 +26,17 @@ interface Culto {
   data_culto: string;
   horario_inicio: string | null;
   horario_fim: string | null;
+  membros_presentes?: number | null;
   criado_em: string;
 }
+
+const meses = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+const currentYear = new Date().getFullYear();
+const anos = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
 export const Cultos: React.FC = () => {
   const { userDetails, isAdmin, isSecretaria } = useAuth();
@@ -38,7 +48,8 @@ export const Cultos: React.FC = () => {
 
   // Filters
   const [tipoFilter, setTipoFilter] = useState<'todos' | 'normal' | 'especial'>('todos');
-  const [periodoFilter, setPeriodoFilter] = useState<'todos' | 'futuros' | 'passados'>('futuros'); // default show future agenda
+  const [mesFilter, setMesFilter] = useState<number>(new Date().getMonth() + 1); // 1-12
+  const [anoFilter, setAnoFilter] = useState<number>(new Date().getFullYear());
 
   const canEdit = isAdmin || isSecretaria;
 
@@ -65,6 +76,7 @@ export const Cultos: React.FC = () => {
           data_culto: new Date(Date.now() + 3600000 * 24 * 2).toISOString().substring(0, 10), // in 2 days
           horario_inicio: '19:00:00',
           horario_fim: '20:30:00',
+          membros_presentes: 120,
           criado_em: new Date().toISOString()
         },
         {
@@ -75,6 +87,7 @@ export const Cultos: React.FC = () => {
           data_culto: new Date(Date.now() + 3600000 * 24 * 6).toISOString().substring(0, 10), // in 6 days
           horario_inicio: '19:30:00',
           horario_fim: '21:30:00',
+          membros_presentes: 185,
           criado_em: new Date().toISOString()
         },
         {
@@ -85,6 +98,7 @@ export const Cultos: React.FC = () => {
           data_culto: new Date(Date.now() + 3600000 * 24 * 4).toISOString().substring(0, 10), // in 4 days
           horario_inicio: '19:30:00',
           horario_fim: '21:00:00',
+          membros_presentes: 75,
           criado_em: new Date().toISOString()
         },
         {
@@ -95,6 +109,7 @@ export const Cultos: React.FC = () => {
           data_culto: new Date(Date.now() + 3600000 * 24 * 12).toISOString().substring(0, 10), // in 12 days
           horario_inicio: '18:00:00',
           horario_fim: '22:00:00',
+          membros_presentes: 250,
           criado_em: new Date().toISOString()
         },
         {
@@ -105,6 +120,7 @@ export const Cultos: React.FC = () => {
           data_culto: new Date(Date.now() - 3600000 * 24 * 5).toISOString().substring(0, 10), // 5 days ago
           horario_inicio: '19:00:00',
           horario_fim: '20:30:00',
+          membros_presentes: 95,
           criado_em: new Date().toISOString()
         }
       ];
@@ -154,15 +170,13 @@ export const Cultos: React.FC = () => {
     // Tipo filter
     const matchesTipo = tipoFilter === 'todos' ? true : c.tipo === tipoFilter;
     
-    // Period filter
-    const matchesPeriodo = 
-      periodoFilter === 'futuros' 
-        ? c.data_culto >= todayStr
-        : periodoFilter === 'passados'
-          ? c.data_culto < todayStr
-          : true; // todos
+    // Month and Year filter
+    const dateParts = c.data_culto.split('-');
+    if (dateParts.length < 2) return false;
+    const matchesMes = parseInt(dateParts[1], 10) === mesFilter;
+    const matchesAno = parseInt(dateParts[0], 10) === anoFilter;
 
-    return matchesTipo && matchesPeriodo;
+    return matchesTipo && matchesMes && matchesAno;
   });
 
   return (
@@ -197,38 +211,37 @@ export const Cultos: React.FC = () => {
       {/* Filter and Navigation Options */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border bg-card shadow-sm">
         
-        {/* Toggle between future / past / all */}
-        <div className="flex border rounded-xl overflow-hidden p-1 bg-muted/40 max-w-max text-xs font-semibold shrink-0">
-          <button
-            onClick={() => setPeriodoFilter('futuros')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              periodoFilter === 'futuros'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Futuros
-          </button>
-          <button
-            onClick={() => setPeriodoFilter('passados')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              periodoFilter === 'passados'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Histórico / Passados
-          </button>
-          <button
-            onClick={() => setPeriodoFilter('todos')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              periodoFilter === 'todos'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Todos
-          </button>
+        {/* Dropdowns de Mês e Ano */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 border rounded-xl bg-muted/40 dark:bg-black/25 px-3 py-2 text-xs font-semibold">
+            <span className="text-muted-foreground font-medium">Mês:</span>
+            <select
+              value={mesFilter}
+              onChange={e => setMesFilter(parseInt(e.target.value))}
+              className="bg-transparent border-none outline-none text-foreground cursor-pointer font-bold pr-1"
+            >
+              {meses.map((mes, index) => (
+                <option key={index + 1} value={index + 1} className="bg-card text-foreground">
+                  {mes}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 border rounded-xl bg-muted/40 dark:bg-black/25 px-3 py-2 text-xs font-semibold">
+            <span className="text-muted-foreground font-medium">Ano:</span>
+            <select
+              value={anoFilter}
+              onChange={e => setAnoFilter(parseInt(e.target.value))}
+              className="bg-transparent border-none outline-none text-foreground cursor-pointer font-bold pr-1"
+            >
+              {anos.map(ano => (
+                <option key={ano} value={ano} className="bg-card text-foreground">
+                  {ano}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Filter by Type */}
@@ -303,13 +316,19 @@ export const Cultos: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Time info */}
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-semibold">
+                  {/* Time & Presence info */}
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-semibold">
                     <span className="flex items-center gap-1">
                       <Clock size={14} className="text-slate-400" />
                       {formatTime(culto.horario_inicio)}
                       {culto.horario_fim && ` às ${formatTime(culto.horario_fim)}`}
                     </span>
+                    {culto.membros_presentes !== undefined && culto.membros_presentes !== null && (
+                      <span className="flex items-center gap-1.5 bg-indigo-500/10 dark:bg-indigo-500/20 px-2.5 py-1 rounded-lg text-indigo-600 dark:text-indigo-400 font-bold text-base">
+                        <Users size={16} />
+                        {culto.membros_presentes} presentes
+                      </span>
+                    )}
                   </div>
 
                   {/* Description */}

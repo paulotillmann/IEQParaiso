@@ -16,9 +16,13 @@ import {
   AlertCircle, 
   TrendingUp, 
   Check, 
-  UserCheck 
+  UserCheck,
+  Users,
+  Printer,
+  FileSpreadsheet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
 
 interface Culto {
   id: string;
@@ -26,6 +30,7 @@ interface Culto {
   tipo: 'normal' | 'especial';
   data_culto: string;
   horario_inicio: string | null;
+  membros_presentes?: number | null;
 }
 
 interface Membro {
@@ -162,7 +167,7 @@ export const DizimosOfertas: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('cultos')
-        .select('id, titulo, tipo, data_culto, horario_inicio')
+        .select('id, titulo, tipo, data_culto, horario_inicio, membros_presentes')
         .order('data_culto', { ascending: false });
 
       if (error) throw error;
@@ -179,21 +184,24 @@ export const DizimosOfertas: React.FC = () => {
           titulo: 'Culto de Celebração e Louvor',
           tipo: 'normal',
           data_culto: today.toISOString().substring(0, 10),
-          horario_inicio: '19:00:00'
+          horario_inicio: '19:00:00',
+          membros_presentes: 120
         },
         {
           id: 'c2',
           titulo: 'Grande Culto de Milagres',
           tipo: 'especial',
           data_culto: new Date(Date.now() - 3600000 * 24 * 3).toISOString().substring(0, 10),
-          horario_inicio: '19:30:00'
+          horario_inicio: '19:30:00',
+          membros_presentes: 185
         },
         {
           id: 'c3',
           titulo: 'Culto de Doutrina e Ensino',
           tipo: 'normal',
           data_culto: new Date(Date.now() - 3600000 * 24 * 5).toISOString().substring(0, 10),
-          horario_inicio: '19:30:00'
+          horario_inicio: '19:30:00',
+          membros_presentes: 75
         }
       ];
       setCultos(mockCultos);
@@ -503,6 +511,357 @@ export const DizimosOfertas: React.FC = () => {
     return dateString;
   };
 
+  const handlePrintRelatorio = () => {
+    if (!selectedCulto) return;
+
+    const dataFormatted = formatDate(selectedCulto.data_culto);
+    const totalGeralVal = totalDizimo + totalAdoracao + totalGerais + totalMissoes;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toastError('Não foi possível abrir a janela de impressão. Verifique se o bloqueador de pop-ups está ativo.');
+      return;
+    }
+
+    const rowsHtml = lancamentos.map(l => `
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 8px; font-weight: bold;">${l.membro?.nome_completo || 'Sem Nome'} ${l.membro?.codigo_ieq ? `<span style="font-size: 10px; color: #666; font-weight: normal;">(Cód: ${l.membro.codigo_ieq})</span>` : ''}</td>
+        <td style="padding: 8px; text-transform: uppercase; font-size: 10px; font-weight: bold; color: #555;">${l.tipo_entrada}</td>
+        <td style="padding: 8px; text-align: right;">${formatBRL(l.valor_dizimo)}</td>
+        <td style="padding: 8px; text-align: right;">${formatBRL(l.valor_oferta_adoracao)}</td>
+        <td style="padding: 8px; text-align: right;">${formatBRL(l.valor_oferta_gerais)}</td>
+        <td style="padding: 8px; text-align: right;">${formatBRL(l.valor_oferta_missoes)}</td>
+        <td style="padding: 8px; text-align: right; font-weight: bold;">${formatBRL(l.valor_dizimo + l.valor_oferta_adoracao + l.valor_oferta_gerais + l.valor_oferta_missoes)}</td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório Financeiro - IEQ Paraíso</title>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 30px;
+            font-size: 13px;
+            line-height: 1.4;
+          }
+          .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid #4f46e5;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+          }
+          .header-title h1 {
+            font-size: 20px;
+            margin: 0 0 5px 0;
+            color: #111;
+            font-weight: bold;
+          }
+          .header-title h2 {
+            font-size: 14px;
+            margin: 0;
+            color: #4f46e5;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+          }
+          .meta-item {
+            font-size: 13px;
+          }
+          .meta-item strong {
+            color: #555;
+          }
+          .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+          }
+          .summary-table th {
+            background-color: #f3f4f6;
+            color: #374151;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            text-transform: uppercase;
+            font-size: 11px;
+          }
+          .summary-table td {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            font-weight: bold;
+          }
+          .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+          }
+          .main-table th {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          .main-table td {
+            padding: 10px;
+          }
+          .signatures-container {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+          }
+          .signature-box {
+            width: 45%;
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            font-weight: bold;
+            font-size: 12px;
+          }
+          @media print {
+            body { margin: 20px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header-container">
+          <div class="header-title">
+            <h2>Igreja do Evangelho Quadrangular</h2>
+            <h1>Relatório Financeiro do Culto</h1>
+            <span style="font-size: 11px; color: #666;">Bairro Paraíso - Araguari/MG</span>
+          </div>
+          <div style="text-align: right; font-size: 11px; color: #666;">
+            Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item"><strong>Culto:</strong> ${selectedCulto.titulo}</div>
+          <div class="meta-item"><strong>Data:</strong> ${dataFormatted}</div>
+          <div class="meta-item"><strong>Tipo:</strong> ${selectedCulto.tipo === 'especial' ? 'Especial' : 'Normal'}</div>
+          <div class="meta-item"><strong>Público Presente:</strong> ${selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null ? `${selectedCulto.membros_presentes} pessoas` : 'Não informado'}</div>
+        </div>
+
+        <h3 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 15px; color: #111;">Resumo de Arrecadação</h3>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">Dízimos</th>
+              <th style="width: 20%;">Oferta Adoração</th>
+              <th style="width: 20%;">Ofertas Gerais</th>
+              <th style="width: 20%;">Oferta Missões</th>
+              <th style="width: 20%; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color: #4f46e5;">${formatBRL(totalDizimo)}</td>
+              <td style="color: #10b981;">${formatBRL(totalAdoracao)}</td>
+              <td style="color: #3b82f6;">${formatBRL(totalGerais)}</td>
+              <td style="color: #f59e0b;">${formatBRL(totalMissoes)}</td>
+              <td style="background-color: #e0e7ff; color: #312e81; font-size: 15px;">${formatBRL(totalGeralVal)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 15px; color: #111;">Detalhamento de Lançamentos</h3>
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Membro</th>
+              <th style="width: 10%;">Entrada</th>
+              <th style="width: 13%; text-align: right;">Dízimo</th>
+              <th style="width: 13%; text-align: right;">Adoração</th>
+              <th style="width: 13%; text-align: right;">Gerais</th>
+              <th style="width: 13%; text-align: right;">Missões</th>
+              <th style="width: 13%; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="signatures-container">
+          <div class="signature-box">
+            Visto do Pastor
+          </div>
+          <div class="signature-box">
+            Assinatura do Tesoureiro / Secretário
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const handleExportExcel = () => {
+    if (!selectedCulto || lancamentos.length === 0) return;
+
+    const dataFormatted = formatDate(selectedCulto.data_culto);
+    const totalGeralVal = totalDizimo + totalAdoracao + totalGerais + totalMissoes;
+
+    const rowsHtml = lancamentos.map(l => `
+      <tr>
+        <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; font-family: Arial; font-size: 11px;">${l.membro?.nome_completo || 'Sem Nome'} ${l.membro?.codigo_ieq ? `(Cód: ${l.membro.codigo_ieq})` : ''}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-transform: uppercase; font-family: Arial; font-size: 10px; font-weight: bold; color: #555; text-align: center;">${l.tipo_entrada}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-family: Arial; font-size: 11px;">${formatBRL(l.valor_dizimo)}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-family: Arial; font-size: 11px;">${formatBRL(l.valor_oferta_adoracao)}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-family: Arial; font-size: 11px;">${formatBRL(l.valor_oferta_gerais)}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-family: Arial; font-size: 11px;">${formatBRL(l.valor_oferta_missoes)}</td>
+        <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold; font-family: Arial; font-size: 11px;">${formatBRL(l.valor_dizimo + l.valor_oferta_adoracao + l.valor_oferta_gerais + l.valor_oferta_missoes)}</td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:Name>Relatório Financeiro</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+        <style>
+          body { font-family: Arial, sans-serif; }
+          .main-table th { background-color: #4f46e5; color: white; font-weight: bold; padding: 8px; border: 1px solid #4f46e5; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <!-- Cabeçalho Principal -->
+          <tr>
+            <td colspan="7" style="font-size: 12px; font-weight: bold; color: #4f46e5; font-family: Arial;">IGREJA DO EVANGELHO QUADRANGULAR</td>
+          </tr>
+          <tr>
+            <td colspan="7" style="font-size: 18px; font-weight: bold; color: #111; font-family: Arial;">Relatório Financeiro do Culto</td>
+          </tr>
+          <tr>
+            <td colspan="7" style="font-size: 10px; color: #666; font-family: Arial;">Bairro Paraíso - Araguari/MG | Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+          </tr>
+          <tr><td colspan="7"></td></tr>
+          
+          <!-- Metadados do Culto -->
+          <tr style="background-color: #f9fafb;">
+            <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Culto:</strong> ${selectedCulto.titulo}</td>
+            <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Data:</strong> ${dataFormatted}</td>
+            <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Tipo:</strong> ${selectedCulto.tipo === 'especial' ? 'Especial' : 'Normal'}</td>
+            <td style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Público:</strong> ${selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null ? `${selectedCulto.membros_presentes} pessoas` : 'Não informado'}</td>
+          </tr>
+          <tr><td colspan="7"></td></tr>
+
+          <!-- Resumo de Arrecadação -->
+          <tr>
+            <td colspan="7" style="font-size: 13px; font-weight: bold; font-family: Arial; border-bottom: 2px solid #ddd; padding-bottom: 3px; color: #111;">Resumo de Arrecadação</td>
+          </tr>
+          <tr style="background-color: #f3f4f6; font-family: Arial; font-size: 11px;">
+            <th colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Dízimos</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Oferta Adoração</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Ofertas Gerais</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Oferta Missões</th>
+            <th colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+          </tr>
+          <tr>
+            <td colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #4f46e5; font-family: Arial; font-size: 12px;">${formatBRL(totalDizimo)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #10b981; font-family: Arial; font-size: 12px;">${formatBRL(totalAdoracao)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #3b82f6; font-family: Arial; font-size: 12px;">${formatBRL(totalGerais)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #f59e0b; font-family: Arial; font-size: 12px;">${formatBRL(totalMissoes)}</td>
+            <td colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; background-color: #e0e7ff; color: #312e81; font-size: 14px; font-family: Arial;">${formatBRL(totalGeralVal)}</td>
+          </tr>
+          <tr><td colspan="7"></td></tr>
+
+          <!-- Detalhamento de Lançamentos -->
+          <tr>
+            <td colspan="7" style="font-size: 13px; font-weight: bold; font-family: Arial; border-bottom: 2px solid #ddd; padding-bottom: 3px; color: #111;">Detalhamento de Lançamentos</td>
+          </tr>
+          <tr style="background-color: #4f46e5; color: white; font-family: Arial; font-size: 11px;">
+            <th style="padding: 8px; text-align: left; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Membro</th>
+            <th style="padding: 8px; text-align: center; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Entrada</th>
+            <th style="padding: 8px; text-align: right; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Dízimo</th>
+            <th style="padding: 8px; text-align: right; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Adoração</th>
+            <th style="padding: 8px; text-align: right; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Gerais</th>
+            <th style="padding: 8px; text-align: right; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Missões</th>
+            <th style="padding: 8px; text-align: right; font-weight: bold; background-color: #4f46e5; border: 1px solid #4f46e5;">Total</th>
+          </tr>
+          ${rowsHtml}
+          
+          <!-- Totais da tabela principal -->
+          <tr style="background-color: #f9fafb; font-weight: bold; font-family: Arial; font-size: 11px;">
+            <td style="border: 1px solid #d1d5db; padding: 8px;">TOTAL DOS LANÇAMENTOS</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">—</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; color: #4f46e5;">${formatBRL(totalDizimo)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; color: #10b981;">${formatBRL(totalAdoracao)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; color: #3b82f6;">${formatBRL(totalGerais)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; color: #f59e0b;">${formatBRL(totalMissoes)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-size: 12px; font-weight: bold;">${formatBRL(totalGeralVal)}</td>
+          </tr>
+          <tr><td colspan="7"></td></tr>
+          <tr><td colspan="7"></td></tr>
+
+          <!-- Assinaturas -->
+          <tr>
+            <td colspan="3" style="border-top: 1px solid #000; text-align: center; font-weight: bold; font-size: 11px; font-family: Arial; padding-top: 5px;">Visto do Pastor</td>
+            <td></td>
+            <td colspan="3" style="border-top: 1px solid #000; text-align: center; font-weight: bold; font-size: 11px; font-family: Arial; padding-top: 5px;">Assinatura do Tesoureiro / Secretário</td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const cleanTitulo = selectedCulto.titulo.replace(/[^a-zA-Z0-9]/g, '_');
+    link.setAttribute('download', `Relatorio_Financeiro_${selectedCulto.data_culto}_${cleanTitulo}.xls`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toastSuccess('Relatório Excel formatado com sucesso!');
+  };
+
   // Filter members by search text
   const filteredMembros = membros.filter(m => {
     const searchLower = membroSearch.toLowerCase();
@@ -577,7 +936,7 @@ export const DizimosOfertas: React.FC = () => {
         </div>
 
         {selectedCulto && (
-          <div className="flex items-center gap-2 text-xs font-semibold shrink-0">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold shrink-0">
             <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border ${
               selectedCulto.tipo === 'especial'
                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
@@ -585,6 +944,27 @@ export const DizimosOfertas: React.FC = () => {
             }`}>
               {selectedCulto.tipo === 'especial' ? 'Culto Especial' : 'Culto Normal'}
             </span>
+
+            {lancamentos.length > 0 && (
+              <>
+                <button
+                  onClick={handlePrintRelatorio}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-xs font-semibold text-foreground transition-all cursor-pointer shadow-sm"
+                  title="Visualizar e Imprimir Relatório do Culto"
+                >
+                  <Printer size={14} className="text-slate-500" />
+                  Imprimir
+                </button>
+                <button
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer shadow-sm"
+                  title="Exportar Relatório para Excel"
+                >
+                  <FileSpreadsheet size={14} />
+                  Exportar Excel
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -619,7 +999,7 @@ export const DizimosOfertas: React.FC = () => {
             className="space-y-6"
           >
             {/* Totalizers */}
-            <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* Total Dizimos */}
               <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
@@ -665,13 +1045,28 @@ export const DizimosOfertas: React.FC = () => {
               </div>
 
               {/* Total Geral */}
-              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between col-span-2 xl:col-span-1">
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Total Arrecadado</span>
                   <span className="text-lg md:text-xl font-extrabold text-slate-800 dark:text-slate-100">{formatBRL(totalGeral)}</span>
                 </div>
                 <div className="h-9 w-9 rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0">
                   <TrendingUp size={18} />
+                </div>
+              </div>
+
+              {/* Público Presente */}
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Público Presente</span>
+                  <span className="text-lg md:text-xl font-extrabold text-violet-600 dark:text-violet-400">
+                    {selectedCulto?.membros_presentes !== undefined && selectedCulto?.membros_presentes !== null 
+                      ? `${selectedCulto.membros_presentes} pessoas`
+                      : '0 pessoas'}
+                  </span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                  <Users size={18} />
                 </div>
               </div>
             </div>

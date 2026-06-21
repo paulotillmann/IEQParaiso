@@ -11,7 +11,8 @@ import {
   FileText, 
   Sparkles,
   ShieldAlert,
-  Info
+  Info,
+  Users
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,6 +35,7 @@ export const NovoCulto: React.FC = () => {
   });
   const [horarioInicio, setHorarioInicio] = useState('19:00');
   const [horarioFim, setHorarioFim] = useState('20:30');
+  const [membrosPresentes, setMembrosPresentes] = useState<number>(0);
   const [descricao, setDescricao] = useState('');
 
   // Validations
@@ -74,10 +76,10 @@ export const NovoCulto: React.FC = () => {
       console.warn('Fallback para carregamento mock de culto em edição:', err);
       // Fallback mocks
       const mockList = [
-        { id: '1', titulo: 'Culto de Celebração e Louvor', tipo: 'normal', descricao: 'Nosso tradicional culto de celebração de domingo à noite com ministração da palavra e louvor.', data_culto: new Date(Date.now() + 3600000 * 24 * 2).toISOString().substring(0, 10), horario_inicio: '19:00:00', horario_fim: '20:30:00' },
-        { id: '2', titulo: 'Grande Culto de Milagres', tipo: 'especial', descricao: 'Culto especial com a presença do Pr. convidado e imposição de mãos. Traga a sua família!', data_culto: new Date(Date.now() + 3600000 * 24 * 6).toISOString().substring(0, 10), horario_inicio: '19:30:00', horario_fim: '21:30:00' },
-        { id: '3', titulo: 'Culto de Doutrina e Ensino', tipo: 'normal', descricao: 'Culto de ensino bíblico e doutrina realizado todas as terças-feiras.', data_culto: new Date(Date.now() + 3600000 * 24 * 4).toISOString().substring(0, 10), horario_inicio: '19:30:00', horario_fim: '21:00:00' },
-        { id: '4', titulo: 'Festa da Primavera Quadrangular', tipo: 'especial', descricao: 'Abertura oficial da festa de primavera da igreja com apresentações teatrais e musicais.', data_culto: new Date(Date.now() + 3600000 * 24 * 12).toISOString().substring(0, 10), horario_inicio: '18:00:00', horario_fim: '22:00:00' }
+        { id: '1', titulo: 'Culto de Celebração e Louvor', tipo: 'normal', descricao: 'Nosso tradicional culto de celebração de domingo à noite com ministração da palavra e louvor.', data_culto: new Date(Date.now() + 3600000 * 24 * 2).toISOString().substring(0, 10), horario_inicio: '19:00:00', horario_fim: '20:30:00', membros_presentes: 120 },
+        { id: '2', titulo: 'Grande Culto de Milagres', tipo: 'especial', descricao: 'Culto especial com a presença do Pr. convidado e imposição de mãos. Traga a sua família!', data_culto: new Date(Date.now() + 3600000 * 24 * 6).toISOString().substring(0, 10), horario_inicio: '19:30:00', horario_fim: '21:30:00', membros_presentes: 185 },
+        { id: '3', titulo: 'Culto de Doutrina e Ensino', tipo: 'normal', descricao: 'Culto de ensino bíblico e doutrina realizado todas as terças-feiras.', data_culto: new Date(Date.now() + 3600000 * 24 * 4).toISOString().substring(0, 10), horario_inicio: '19:30:00', horario_fim: '21:00:00', membros_presentes: 75 },
+        { id: '4', titulo: 'Festa da Primavera Quadrangular', tipo: 'especial', descricao: 'Abertura oficial da festa de primavera da igreja com apresentações teatrais e musicais.', data_culto: new Date(Date.now() + 3600000 * 24 * 12).toISOString().substring(0, 10), horario_inicio: '18:00:00', horario_fim: '22:00:00', membros_presentes: 250 }
       ];
 
       const found = mockList.find(c => c.id === id);
@@ -97,6 +99,7 @@ export const NovoCulto: React.FC = () => {
     // Format times from HH:MM:SS to HH:MM
     setHorarioInicio(data.horario_inicio ? data.horario_inicio.substring(0, 5) : '19:00');
     setHorarioFim(data.horario_fim ? data.horario_fim.substring(0, 5) : '20:30');
+    setMembrosPresentes(data.membros_presentes || 0);
     setDescricao(data.descricao || '');
   };
 
@@ -128,6 +131,7 @@ export const NovoCulto: React.FC = () => {
       data_culto: dataCulto,
       horario_inicio: horarioInicio ? `${horarioInicio}:00` : null,
       horario_fim: horarioFim ? `${horarioFim}:00` : null,
+      membros_presentes: membrosPresentes,
       descricao: descricao.trim() || null
     };
 
@@ -272,6 +276,18 @@ export const NovoCulto: React.FC = () => {
                   type="time"
                   value={horarioFim}
                   onChange={e => setHorarioFim(e.target.value)}
+                  className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 px-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center"><Users size={12} className="mr-1 text-slate-400" /> Membros Presentes</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Ex: 120"
+                  value={membrosPresentes}
+                  onChange={e => setMembrosPresentes(e.target.value === '' ? 0 : parseInt(e.target.value))}
                   className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 px-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
                 />
               </div>
