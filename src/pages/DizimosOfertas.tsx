@@ -19,7 +19,10 @@ import {
   UserCheck,
   Users,
   Printer,
-  FileSpreadsheet
+  FileSpreadsheet,
+  QrCode,
+  Banknote,
+  Percent
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
@@ -82,6 +85,7 @@ export const DizimosOfertas: React.FC = () => {
   const [valorOfertaMissoes, setValorOfertaMissoes] = useState('0,00');
   const [tipoEntrada, setTipoEntrada] = useState<'dinheiro' | 'pix'>('dinheiro');
   const [searchFilter, setSearchFilter] = useState('');
+  const [tipoEntradaFilter, setTipoEntradaFilter] = useState<'todos' | 'pix' | 'dinheiro'>('todos');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -216,7 +220,6 @@ export const DizimosOfertas: React.FC = () => {
       const { data, error } = await supabase
         .from('membros')
         .select('id, nome_completo, ativo, codigo_ieq')
-        .eq('ativo', true)
         .order('nome_completo', { ascending: true });
 
       if (error) throw error;
@@ -573,7 +576,7 @@ export const DizimosOfertas: React.FC = () => {
           }
           .meta-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin-bottom: 25px;
             background: #f9fafb;
@@ -661,26 +664,33 @@ export const DizimosOfertas: React.FC = () => {
           <div class="meta-item"><strong>Data:</strong> ${dataFormatted}</div>
           <div class="meta-item"><strong>Tipo:</strong> ${selectedCulto.tipo === 'especial' ? 'Especial' : 'Normal'}</div>
           <div class="meta-item"><strong>Público Presente:</strong> ${selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null ? `${selectedCulto.membros_presentes} pessoas` : 'Não informado'}</div>
+          <div class="meta-item"><strong>Membros Registrados:</strong> ${lancamentos.length}</div>
         </div>
 
         <h3 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 15px; color: #111;">Resumo de Arrecadação</h3>
         <table class="summary-table">
           <thead>
             <tr>
-              <th style="width: 20%;">Dízimos</th>
-              <th style="width: 20%;">Oferta Adoração</th>
-              <th style="width: 20%;">Ofertas Gerais</th>
-              <th style="width: 20%;">Oferta Missões</th>
-              <th style="width: 20%; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+              <th style="width: 12.5%;">Dízimos</th>
+              <th style="width: 12.5%;">Oferta Adoração</th>
+              <th style="width: 12.5%;">Oferta Missões</th>
+              <th style="width: 12.5%; background-color: #f0fdfa; color: #0d9488;">Total PIX</th>
+              <th style="width: 12.5%; background-color: #fff1f2; color: #e11d48;">Total Dinheiro</th>
+              <th style="width: 12.5%; background-color: #fdf4ff; color: #c026d3;">Taxa (20%)</th>
+              <th style="width: 12.5%; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+              <th style="width: 12.5%; background-color: #eff6ff; color: #1d4ed8;">Membros Reg.</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td style="color: #4f46e5;">${formatBRL(totalDizimo)}</td>
               <td style="color: #10b981;">${formatBRL(totalAdoracao)}</td>
-              <td style="color: #3b82f6;">${formatBRL(totalGerais)}</td>
               <td style="color: #f59e0b;">${formatBRL(totalMissoes)}</td>
-              <td style="background-color: #e0e7ff; color: #312e81; font-size: 15px;">${formatBRL(totalGeralVal)}</td>
+              <td style="background-color: #f0fdfa; color: #0d9488;">${formatBRL(totalPix)}</td>
+              <td style="background-color: #fff1f2; color: #e11d48;">${formatBRL(totalDinheiro)}</td>
+              <td style="background-color: #fdf4ff; color: #c026d3; font-size: 14px;">${formatBRL(totalTaxa)}</td>
+              <td style="background-color: #e0e7ff; color: #312e81; font-size: 14px;">${formatBRL(totalGeralVal)}</td>
+              <td style="background-color: #eff6ff; color: #1d4ed8; font-size: 14px;">${lancamentos.length}</td>
             </tr>
           </tbody>
         </table>
@@ -782,10 +792,13 @@ export const DizimosOfertas: React.FC = () => {
           
           <!-- Metadados do Culto -->
           <tr style="background-color: #f9fafb;">
-            <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Culto:</strong> ${selectedCulto.titulo}</td>
+            <td colspan="3" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Culto:</strong> ${selectedCulto.titulo}</td>
             <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Data:</strong> ${dataFormatted}</td>
             <td colspan="2" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Tipo:</strong> ${selectedCulto.tipo === 'especial' ? 'Especial' : 'Normal'}</td>
-            <td style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Público:</strong> ${selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null ? `${selectedCulto.membros_presentes} pessoas` : 'Não informado'}</td>
+          </tr>
+          <tr style="background-color: #f9fafb;">
+            <td colspan="3" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Público Presente:</strong> ${selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null ? `${selectedCulto.membros_presentes} pessoas` : 'Não informado'}</td>
+            <td colspan="4" style="border: 1px solid #e5e7eb; padding: 6px; font-family: Arial; font-size: 11px;"><strong>Membros Registrados (Contribuintes):</strong> ${lancamentos.length}</td>
           </tr>
           <tr><td colspan="7"></td></tr>
 
@@ -794,18 +807,24 @@ export const DizimosOfertas: React.FC = () => {
             <td colspan="7" style="font-size: 13px; font-weight: bold; font-family: Arial; border-bottom: 2px solid #ddd; padding-bottom: 3px; color: #111;">Resumo de Arrecadação</td>
           </tr>
           <tr style="background-color: #f3f4f6; font-family: Arial; font-size: 11px;">
-            <th colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Dízimos</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Dízimos</th>
             <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Oferta Adoração</th>
-            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Ofertas Gerais</th>
             <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f3f4f6;">Oferta Missões</th>
-            <th colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #f0fdfa; color: #0d9488;">Total PIX</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #fff1f2; color: #e11d48;">Total Dinheiro</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #fdf4ff; color: #c026d3;">Taxa (20%)</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #e0e7ff; color: #312e81;">Total Geral</th>
+            <th style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; text-align: left; background-color: #eff6ff; color: #1d4ed8;">Membros Reg.</th>
           </tr>
           <tr>
-            <td colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #4f46e5; font-family: Arial; font-size: 12px;">${formatBRL(totalDizimo)}</td>
-            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #10b981; font-family: Arial; font-size: 12px;">${formatBRL(totalAdoracao)}</td>
-            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #3b82f6; font-family: Arial; font-size: 12px;">${formatBRL(totalGerais)}</td>
-            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #f59e0b; font-family: Arial; font-size: 12px;">${formatBRL(totalMissoes)}</td>
-            <td colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; background-color: #e0e7ff; color: #312e81; font-size: 14px; font-family: Arial;">${formatBRL(totalGeralVal)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #4f46e5; font-family: Arial; font-size: 11px;">${formatBRL(totalDizimo)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #10b981; font-family: Arial; font-size: 11px;">${formatBRL(totalAdoracao)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #f59e0b; font-family: Arial; font-size: 11px;">${formatBRL(totalMissoes)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #0d9488; font-family: Arial; font-size: 11px; background-color: #f0fdfa;">${formatBRL(totalPix)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #e11d48; font-family: Arial; font-size: 11px; background-color: #fff1f2;">${formatBRL(totalDinheiro)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; color: #c026d3; font-family: Arial; font-size: 11px; background-color: #fdf4ff;">${formatBRL(totalTaxa)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; background-color: #e0e7ff; color: #312e81; font-size: 11px;">${formatBRL(totalGeralVal)}</td>
+            <td style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold; background-color: #eff6ff; color: #1d4ed8; font-size: 11px;">${lancamentos.length}</td>
           </tr>
           <tr><td colspan="7"></td></tr>
 
@@ -862,20 +881,24 @@ export const DizimosOfertas: React.FC = () => {
     toastSuccess('Relatório Excel formatado com sucesso!');
   };
 
-  // Filter members by search text
+  // Filter members by search text and ensure only active members are shown
   const filteredMembros = membros.filter(m => {
+    if (!m.ativo) return false;
     const searchLower = membroSearch.toLowerCase();
     const matchName = m.nome_completo.toLowerCase().includes(searchLower);
     const matchCode = m.codigo_ieq ? String(m.codigo_ieq).includes(searchLower) : false;
     return matchName || matchCode;
   });
 
-  // Filter lancamentos by search box
+  // Filter lancamentos by search box and payment method
   const filteredLancamentos = lancamentos.filter(l => {
     const searchLower = searchFilter.toLowerCase();
-    const matchName = l.membro?.nome_completo.toLowerCase().includes(searchLower) || false;
-    const matchCode = l.membro?.codigo_ieq ? String(l.membro.codigo_ieq).includes(searchLower) : false;
-    return matchName || matchCode;
+    const matchesSearch = (l.membro?.nome_completo.toLowerCase().includes(searchLower) || false) ||
+      (l.membro?.codigo_ieq ? String(l.membro.codigo_ieq).includes(searchLower) : false);
+      
+    const matchesTipo = tipoEntradaFilter === 'todos' || l.tipo_entrada === tipoEntradaFilter;
+    
+    return matchesSearch && matchesTipo;
   });
 
   // Calculate totals
@@ -884,6 +907,22 @@ export const DizimosOfertas: React.FC = () => {
   const totalGerais = lancamentos.reduce((acc, curr) => acc + curr.valor_oferta_gerais, 0);
   const totalMissoes = lancamentos.reduce((acc, curr) => acc + curr.valor_oferta_missoes, 0);
   const totalGeral = totalDizimo + totalAdoracao + totalGerais + totalMissoes;
+
+  const totalPix = lancamentos.reduce((acc, curr) => 
+    curr.tipo_entrada === 'pix' 
+      ? acc + curr.valor_dizimo + curr.valor_oferta_adoracao + curr.valor_oferta_gerais + curr.valor_oferta_missoes 
+      : acc, 
+    0
+  );
+
+  const totalDinheiro = lancamentos.reduce((acc, curr) => 
+    curr.tipo_entrada === 'dinheiro' 
+      ? acc + curr.valor_dizimo + curr.valor_oferta_adoracao + curr.valor_oferta_gerais + curr.valor_oferta_missoes 
+      : acc, 
+    0
+  );
+
+  const totalTaxa = (totalGeral - totalMissoes) * 0.20;
 
   const selectedCulto = cultos.find(c => c.id === selectedCultoId);
 
@@ -907,32 +946,50 @@ export const DizimosOfertas: React.FC = () => {
 
       {/* Select Culto Card */}
       <div className="p-5 rounded-2xl border bg-card shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0">
-            <Calendar size={20} />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0">
+              <Calendar size={20} />
+            </div>
+            <div>
+              <label htmlFor="culto-select-fin" className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block mb-1">
+                Culto Selecionado
+              </label>
+              {loading ? (
+                <span className="text-xs text-muted-foreground font-semibold">Carregando cultos...</span>
+              ) : (
+                <select
+                  id="culto-select-fin"
+                  value={selectedCultoId}
+                  onChange={e => setSelectedCultoId(e.target.value)}
+                  className="bg-transparent text-sm font-bold text-foreground outline-none border-b border-muted hover:border-indigo-500 focus:border-indigo-500 pb-1 cursor-pointer transition-colors max-w-xs md:max-w-md"
+                >
+                  <option value="" disabled className="text-muted-foreground font-medium">Selecione um culto...</option>
+                  {cultos.map(c => (
+                    <option key={c.id} value={c.id} className="text-foreground bg-card">
+                      {formatDate(c.data_culto)} - {c.titulo} ({c.tipo === 'especial' ? 'Especial' : 'Normal'})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
-          <div>
-            <label htmlFor="culto-select-fin" className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider block mb-1">
-              Culto Selecionado
-            </label>
-            {loading ? (
-              <span className="text-xs text-muted-foreground font-semibold">Carregando cultos...</span>
-            ) : (
-              <select
-                id="culto-select-fin"
-                value={selectedCultoId}
-                onChange={e => setSelectedCultoId(e.target.value)}
-                className="bg-transparent text-sm font-bold text-foreground outline-none border-b border-muted hover:border-indigo-500 focus:border-indigo-500 pb-1 cursor-pointer transition-colors max-w-xs md:max-w-md"
-              >
-                <option value="" disabled className="text-muted-foreground font-medium">Selecione um culto...</option>
-                {cultos.map(c => (
-                  <option key={c.id} value={c.id} className="text-foreground bg-card">
-                    {formatDate(c.data_culto)} - {c.titulo} ({c.tipo === 'especial' ? 'Especial' : 'Normal'})
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+
+          {selectedCulto && (
+            <div className="flex items-center gap-2 border-t pt-3 sm:border-t-0 sm:pt-0 sm:border-l sm:pl-6 border-muted shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0 border border-violet-500/20">
+                <Users size={15} />
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block leading-none mb-1">Público Presente</span>
+                <span className="text-sm font-extrabold text-violet-600 dark:text-violet-400">
+                  {selectedCulto.membros_presentes !== undefined && selectedCulto.membros_presentes !== null 
+                    ? `${selectedCulto.membros_presentes} pessoas`
+                    : '0 pessoas'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedCulto && (
@@ -999,7 +1056,7 @@ export const DizimosOfertas: React.FC = () => {
             className="space-y-6"
           >
             {/* Totalizers */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
               {/* Total Dizimos */}
               <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
@@ -1022,17 +1079,6 @@ export const DizimosOfertas: React.FC = () => {
                 </div>
               </div>
 
-              {/* Total Oferta Gerais */}
-              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Ofertas Gerais</span>
-                  <span className="text-lg md:text-xl font-extrabold text-blue-500">{formatBRL(totalGerais)}</span>
-                </div>
-                <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                  <DollarSign size={18} />
-                </div>
-              </div>
-
               {/* Total Oferta Missoes */}
               <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
@@ -1041,6 +1087,39 @@ export const DizimosOfertas: React.FC = () => {
                 </div>
                 <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                   <Coins size={18} />
+                </div>
+              </div>
+
+              {/* Total Pix */}
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Total PIX</span>
+                  <span className="text-lg md:text-xl font-extrabold text-teal-600 dark:text-teal-400">{formatBRL(totalPix)}</span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                  <QrCode size={18} />
+                </div>
+              </div>
+
+              {/* Total Dinheiro */}
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Total Dinheiro</span>
+                  <span className="text-lg md:text-xl font-extrabold text-rose-600 dark:text-rose-400">{formatBRL(totalDinheiro)}</span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <Banknote size={18} />
+                </div>
+              </div>
+
+              {/* Valor da Taxa */}
+              <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Taxa (20%)</span>
+                  <span className="text-lg md:text-xl font-extrabold text-fuchsia-600 dark:text-fuchsia-400">{formatBRL(totalTaxa)}</span>
+                </div>
+                <div className="h-9 w-9 rounded-xl bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center shrink-0">
+                  <Percent size={18} />
                 </div>
               </div>
 
@@ -1055,20 +1134,19 @@ export const DizimosOfertas: React.FC = () => {
                 </div>
               </div>
 
-              {/* Público Presente */}
+              {/* Membros Registrados */}
               <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Público Presente</span>
-                  <span className="text-lg md:text-xl font-extrabold text-violet-600 dark:text-violet-400">
-                    {selectedCulto?.membros_presentes !== undefined && selectedCulto?.membros_presentes !== null 
-                      ? `${selectedCulto.membros_presentes} pessoas`
-                      : '0 pessoas'}
+                  <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider block">Membros Registrados</span>
+                  <span className="text-lg md:text-xl font-extrabold text-blue-600 dark:text-blue-400">
+                    {lancamentos.length} {lancamentos.length === 1 ? 'membro' : 'membros'}
                   </span>
                 </div>
-                <div className="h-9 w-9 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
-                  <Users size={18} />
+                <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <UserCheck size={18} />
                 </div>
               </div>
+
             </div>
 
             {/* Layout Grid: Form (Left) & Table (Right) */}
@@ -1203,21 +1281,7 @@ export const DizimosOfertas: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Valor Oferta Gerais */}
-                      <div className="space-y-1">
-                        <label htmlFor="gerais-val" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Oferta Geral / Gerais (R$)</label>
-                        <div className="relative">
-                          <input
-                            id="gerais-val"
-                            type="text"
-                            placeholder="0,00"
-                            value={valorOfertaGerais}
-                            onChange={e => setValorOfertaGerais(formatCurrencyInput(e.target.value))}
-                            className="w-full rounded-xl border bg-black/5 dark:bg-black/25 py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-all focus:border-indigo-500"
-                          />
-                          <DollarSign size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
-                        </div>
-                      </div>
+
 
                       {/* Valor Oferta Missões */}
                       <div className="space-y-1">
@@ -1257,16 +1321,31 @@ export const DizimosOfertas: React.FC = () => {
 
               {/* Table Column */}
               <div className="lg:col-span-8 space-y-4">
-                {/* Search Bar */}
-                <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center bg-black/5 dark:bg-black/25 px-3 py-2">
-                  <Search size={18} className="text-muted-foreground mr-2 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Filtrar lançamentos por membro ou código..."
-                    value={searchFilter}
-                    onChange={e => setSearchFilter(e.target.value)}
-                    className="bg-transparent text-sm w-full outline-none text-foreground placeholder-muted-foreground"
-                  />
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center bg-black/5 dark:bg-black/25 px-3 py-2 w-full">
+                    <Search size={18} className="text-muted-foreground mr-2 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Filtrar lançamentos por membro ou código..."
+                      value={searchFilter}
+                      onChange={e => setSearchFilter(e.target.value)}
+                      className="bg-transparent text-sm w-full outline-none text-foreground placeholder-muted-foreground"
+                    />
+                  </div>
+                  
+                  {/* Tipo Entrada Filter */}
+                  <div className="p-4 rounded-2xl border bg-card shadow-sm flex items-center bg-black/5 dark:bg-black/25 px-3 py-2 shrink-0 min-w-[155px] w-full sm:w-auto">
+                    <select
+                      value={tipoEntradaFilter}
+                      onChange={e => setTipoEntradaFilter(e.target.value as any)}
+                      className="bg-transparent text-sm w-full outline-none text-foreground cursor-pointer font-semibold"
+                    >
+                      <option value="todos" className="text-foreground bg-card">PIX & Dinheiro</option>
+                      <option value="pix" className="text-foreground bg-card">Apenas PIX</option>
+                      <option value="dinheiro" className="text-foreground bg-card">Apenas Dinheiro</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Table */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from '../components/Router';
 import { 
@@ -44,6 +45,7 @@ interface Membro {
 
 export const Membros: React.FC = () => {
   const { userDetails, isAdmin, isSecretaria } = useAuth();
+  const { success: toastSuccess, error: toastError } = useToast();
   const navigate = useNavigate();
 
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -56,9 +58,34 @@ export const Membros: React.FC = () => {
   const [search, setSearch] = useState('');
   const [cargoFilter, setCargoFilter] = useState('');
   const [cidadeFilter, setCidadeFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ativos'); // default show active
+  const [statusFilter, setStatusFilter] = useState('todos'); // default show all
 
   const canEdit = isAdmin || isSecretaria;
+
+  const handleToggleStatus = async (membroId: string, currentStatus: boolean) => {
+    if (!canEdit) return;
+    
+    // Update local state optimistically
+    setMembros(prev => prev.map(m => m.id === membroId ? { ...m, ativo: !currentStatus } : m));
+    
+    try {
+      if (!usingMocks) {
+        const { error } = await supabase
+          .from('membros')
+          .update({ ativo: !currentStatus })
+          .eq('id', membroId);
+        
+        if (error) throw error;
+      }
+      
+      toastSuccess(`Status do membro alterado para ${!currentStatus ? 'Ativo' : 'Inativo'} com sucesso!`);
+    } catch (err: any) {
+      console.error('Erro ao atualizar status:', err);
+      // Rollback on error
+      setMembros(prev => prev.map(m => m.id === membroId ? { ...m, ativo: currentStatus } : m));
+      toastError('Erro ao atualizar status do membro no banco de dados.');
+    }
+  };
 
   const fetchFiltersData = async (membrosList: Membro[]) => {
     // Extract unique cities from member list for filter dropdown
@@ -400,20 +427,38 @@ export const Membros: React.FC = () => {
                         <span className="italic text-xs text-muted-foreground/60">Sem contato</span>
                       )}
                     </td>
-                    
+  // ... (rest of the file content)
+
                     <td className="px-6 py-4 text-muted-foreground">
                       {membro.cidade} - {membro.uf}
                     </td>
 
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase leading-none ${
-                        membro.ativo 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
-                      }`}>
-                        {membro.ativo ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </td>
+                     <td className="px-6 py-4">
+                       <div className="flex items-center gap-2">
+                         {canEdit ? (
+                           <button
+                             onClick={() => handleToggleStatus(membro.id, membro.ativo)}
+                             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                               membro.ativo ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+                             }`}
+                             title={membro.ativo ? 'Desativar Membro' : 'Ativar Membro'}
+                           >
+                             <span
+                               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+                                 membro.ativo ? 'translate-x-4' : 'translate-x-0'
+                               }`}
+                             />
+                           </button>
+                         ) : null}
+                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase leading-none ${
+                           membro.ativo 
+                             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                             : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                         }`}>
+                           {membro.ativo ? 'Ativo' : 'Inativo'}
+                         </span>
+                       </div>
+                     </td>
 
                     {/* Action buttons */}
                     <td className="px-6 py-4 text-right space-x-2 shrink-0">
