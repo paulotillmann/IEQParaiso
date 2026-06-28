@@ -51,6 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Clear inactivity timer
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+
+      // Registrar logoff no banco de dados antes do signOut
+      try {
+        await supabase.rpc('registrar_logoff');
+      } catch (logoffErr) {
+        console.warn('Falha ao registrar logoff no banco:', logoffErr);
+      }
+
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);

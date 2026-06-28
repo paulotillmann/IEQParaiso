@@ -90,9 +90,9 @@ export const Login: React.FC = () => {
 
       if (data.user) {
         try {
-          await supabase.rpc('registrar_acesso');
+          await supabase.rpc('registrar_login');
         } catch (rpcErr) {
-          console.warn('Falha ao registrar acesso (a migração de banco pode não ter sido aplicada):', rpcErr);
+          console.warn('Falha ao registrar login (a migração de banco pode não ter sido aplicada):', rpcErr);
         }
         navigate('/dashboard');
       }
