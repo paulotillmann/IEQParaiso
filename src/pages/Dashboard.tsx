@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '../contexts/ToastContext';
-import { DailyFinancialChart, FinancialDayData } from '../components/DailyFinancialChart';
+import { DailyFinancialChart, FinancialDayData, FinancialMonthData } from '../components/DailyFinancialChart';
 
 interface DashboardStats {
   totalMembros: number;
@@ -40,7 +40,8 @@ export const Dashboard: React.FC = () => {
     visitantesAtivos: 0
   });
   const [recentes, setRecentes] = useState<RecenteVisitante[]>([]);
-  const [financialData, setFinancialData] = useState<FinancialDayData[]>([]);
+  const [monthFinancialData, setMonthFinancialData] = useState<FinancialDayData[]>([]);
+  const [yearFinancialData, setYearFinancialData] = useState<FinancialMonthData[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingMocks, setUsingMocks] = useState(false);
 
@@ -90,6 +91,39 @@ export const Dashboard: React.FC = () => {
     return mockData;
   };
 
+  // Generate realistic mock financial data for all months of the current year
+  const generateMockYearFinancialData = (): FinancialMonthData[] => {
+    const months = [
+      { num: 1, name: 'Janeiro', short: 'Jan', base: 14200 },
+      { num: 2, name: 'Fevereiro', short: 'Fev', base: 12800 },
+      { num: 3, name: 'Março', short: 'Mar', base: 15400 },
+      { num: 4, name: 'Abril', short: 'Abr', base: 16100 },
+      { num: 5, name: 'Maio', short: 'Mai', base: 17300 },
+      { num: 6, name: 'Junho', short: 'Jun', base: 16800 },
+      { num: 7, name: 'Julho', short: 'Jul', base: 18200 },
+      { num: 8, name: 'Agosto', short: 'Ago', base: 17900 },
+      { num: 9, name: 'Setembro', short: 'Set', base: 19400 },
+      { num: 10, name: 'Outubro', short: 'Out', base: 18600 },
+      { num: 11, name: 'Novembro', short: 'Nov', base: 21500 },
+      { num: 12, name: 'Dezembro', short: 'Dez', base: 26800 }
+    ];
+
+    return months.map(m => {
+      const dizimo = Math.round(m.base * 0.65);
+      const adoracao = Math.round(m.base * 0.22);
+      const missoes = Math.round(m.base * 0.13);
+      return {
+        month: m.num,
+        monthName: m.name,
+        shortName: m.short,
+        dizimo,
+        adoracao,
+        missoes,
+        total: dizimo + adoracao + missoes
+      };
+    });
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
@@ -135,10 +169,12 @@ export const Dashboard: React.FC = () => {
         
         setRecentes(visitantesData || []);
         
-        // Fetch financial data for the current month
+        // Fetch financial data for the whole current year
         const now = new Date();
-        const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
-        const endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth(); // 0 to 11
+        const startYearStr = `${currentYear}-01-01`;
+        const endYearStr = `${currentYear}-12-31`;
 
         const { data: finData, error: finErr } = await supabase
           .from('dizimos_ofertas')
@@ -150,30 +186,47 @@ export const Dashboard: React.FC = () => {
               data_culto
             )
           `)
-          .gte('cultos.data_culto', startStr)
-          .lte('cultos.data_culto', endStr);
+          .gte('cultos.data_culto', startYearStr)
+          .lte('cultos.data_culto', endYearStr);
 
         if (finErr) {
-          console.warn('Erro ao buscar dados financeiros do mês, usando dados de demonstração:', finErr);
-          setFinancialData(generateMockFinancialData());
+          console.warn('Erro ao buscar dados financeiros do ano, usando dados de demonstração:', finErr);
+          setMonthFinancialData(generateMockFinancialData());
+          setYearFinancialData(generateMockYearFinancialData());
         } else {
           const dailyMap: { [day: number]: { dizimo: number; adoracao: number; missoes: number } } = {};
+          const monthlyMap: { [month: number]: { dizimo: number; adoracao: number; missoes: number } } = {};
           
           if (finData && finData.length > 0) {
             finData.forEach((row: any) => {
               const culto = Array.isArray(row.cultos) ? row.cultos[0] : row.cultos;
               if (culto && culto.data_culto) {
-                const day = parseInt(culto.data_culto.split('-')[2], 10);
-                if (!dailyMap[day]) {
-                  dailyMap[day] = { dizimo: 0, adoracao: 0, missoes: 0 };
+                const parts = String(culto.data_culto).split('-');
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const d = parseInt(parts[2], 10);
+
+                // Yearly aggregation (1..12)
+                if (!monthlyMap[m]) {
+                  monthlyMap[m] = { dizimo: 0, adoracao: 0, missoes: 0 };
                 }
-                dailyMap[day].dizimo += Number(row.valor_dizimo || 0);
-                dailyMap[day].adoracao += Number(row.valor_oferta_adoracao || 0);
-                dailyMap[day].missoes += Number(row.valor_oferta_missoes || 0);
+                monthlyMap[m].dizimo += Number(row.valor_dizimo || 0);
+                monthlyMap[m].adoracao += Number(row.valor_oferta_adoracao || 0);
+                monthlyMap[m].missoes += Number(row.valor_oferta_missoes || 0);
+
+                // Monthly daily aggregation for the current month
+                if (m === (currentMonth + 1) && y === currentYear) {
+                  if (!dailyMap[d]) {
+                    dailyMap[d] = { dizimo: 0, adoracao: 0, missoes: 0 };
+                  }
+                  dailyMap[d].dizimo += Number(row.valor_dizimo || 0);
+                  dailyMap[d].adoracao += Number(row.valor_oferta_adoracao || 0);
+                  dailyMap[d].missoes += Number(row.valor_oferta_missoes || 0);
+                }
               }
             });
 
-            const mapped: FinancialDayData[] = Object.keys(dailyMap).map(dayKey => {
+            const mappedDaily: FinancialDayData[] = Object.keys(dailyMap).map(dayKey => {
               const day = parseInt(dayKey, 10);
               const { dizimo, adoracao, missoes } = dailyMap[day];
               return {
@@ -185,10 +238,40 @@ export const Dashboard: React.FC = () => {
               };
             });
 
-            setFinancialData(mapped);
+            const monthNamesList = [
+              { num: 1, name: 'Janeiro', short: 'Jan' },
+              { num: 2, name: 'Fevereiro', short: 'Fev' },
+              { num: 3, name: 'Março', short: 'Mar' },
+              { num: 4, name: 'Abril', short: 'Abr' },
+              { num: 5, name: 'Maio', short: 'Mai' },
+              { num: 6, name: 'Junho', short: 'Jun' },
+              { num: 7, name: 'Julho', short: 'Jul' },
+              { num: 8, name: 'Agosto', short: 'Ago' },
+              { num: 9, name: 'Setembro', short: 'Set' },
+              { num: 10, name: 'Outubro', short: 'Out' },
+              { num: 11, name: 'Novembro', short: 'Nov' },
+              { num: 12, name: 'Dezembro', short: 'Dez' }
+            ];
+
+            const mappedYearly: FinancialMonthData[] = monthNamesList.map(m => {
+              const found = monthlyMap[m.num] || { dizimo: 0, adoracao: 0, missoes: 0 };
+              return {
+                month: m.num,
+                monthName: m.name,
+                shortName: m.short,
+                dizimo: found.dizimo,
+                adoracao: found.adoracao,
+                missoes: found.missoes,
+                total: found.dizimo + found.adoracao + found.missoes
+              };
+            });
+
+            setMonthFinancialData(mappedDaily);
+            setYearFinancialData(mappedYearly);
           } else {
-            // Fallback to mock data if there are no entries in the month yet to show a beautiful presentation
-            setFinancialData(generateMockFinancialData());
+            // Fallback to mock data if there are no entries yet to show a beautiful presentation
+            setMonthFinancialData(generateMockFinancialData());
+            setYearFinancialData(generateMockYearFinancialData());
           }
         }
         
@@ -257,7 +340,8 @@ export const Dashboard: React.FC = () => {
             ativo: false
           }
         ]);
-        setFinancialData(generateMockFinancialData());
+        setMonthFinancialData(generateMockFinancialData());
+        setYearFinancialData(generateMockYearFinancialData());
         setUsingMocks(true);
       } finally {
         setLoading(false);
@@ -428,9 +512,11 @@ export const Dashboard: React.FC = () => {
           transition={{ duration: 0.4, delay: 0.1 }}
         >
           <DailyFinancialChart 
-            data={financialData}
+            monthData={monthFinancialData}
+            yearData={yearFinancialData}
             monthName={getMonthName()}
             year={new Date().getFullYear()}
+            initialFilter="ano"
           />
         </motion.div>
       )}
